@@ -1,0 +1,866 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if guardian %}تعديل ولي الأمر - {{ guardian.name }}{% else %}إضافة ولي أمر جديد{% endif %} - برنامج المساعدات
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4>
+                    <i class="bi bi-person me-2"></i>
+                    {% if guardian %}تعديل ولي الأمر - {{ guardian.name }}{% else %}إضافة ولي أمر جديد{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- قسم بيانات الترحيل -->
+                {% if migrate_data %}
+                <div class="alert alert-warning border-2 border-primary shadow-sm mb-4">
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <h5 class="alert-heading mb-2">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                {% if migrate_data.type == 'wife' %}
+                                    ترحيل زوجة إلى ولي أمر جديد
+                                {% elif migrate_data.type == 'all_wives' %}
+                                    ترحيل جميع الزوجات إلى ولي أمر جديد
+                                {% elif migrate_data.type == 'all_children' %}
+                                    ترحيل جميع الأبناء إلى ولي أمر جديد
+                                {% else %}
+                                    ترحيل طفل إلى ولي أمر جديد
+                                {% endif %}
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if migrate_data.type == 'wife' %}
+                                        <p class="mb-1"><strong>اسم الزوجة:</strong> {{ migrate_data.name }}</p>
+                                        <p class="mb-1"><strong>رقم هوية الزوجة:</strong> {{ migrate_data.national_id|default:"غير محدد" }}</p>
+                                    {% elif migrate_data.type == 'all_wives' %}
+                                        <p class="mb-1"><strong>عدد الزوجات:</strong> {{ migrate_data.count }}</p>
+                                        <div class="mt-2">
+                                            <small class="text-muted">أسماء الزوجات:</small>
+                                            <ul class="list-unstyled mb-0">
+                                                {% for wife in migrate_data.wives_data %}
+                                                    <li><small>• {{ wife.name }} {% if wife.national_id %}({{ wife.national_id }}){% endif %}</small></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% elif migrate_data.type == 'all_children' %}
+                                        <p class="mb-1"><strong>عدد الأبناء:</strong> {{ migrate_data.count }}</p>
+                                        <div class="mt-2">
+                                            <small class="text-muted">أسماء الأبناء:</small>
+                                            <ul class="list-unstyled mb-0">
+                                                {% for child in migrate_data.children_data %}
+                                                    <li><small>• {{ child.name }} ({{ child.gender }}) {% if child.national_id %}({{ child.national_id }}){% endif %}</small></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% else %}
+                                        <p class="mb-1"><strong>اسم الطفل:</strong> {{ migrate_data.child_name }}</p>
+                                        <p class="mb-1"><strong>رقم هوية الطفل:</strong> {{ migrate_data.child_national_id|default:"غير محدد" }}</p>
+                                        <p class="mb-1"><strong>تاريخ الميلاد:</strong> {{ migrate_data.child_birth_date|default:"غير محدد" }}</p>
+                                        <p class="mb-1"><strong>الجنس:</strong> {{ migrate_data.child_gender }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>ولي الأمر الحالي:</strong> {{ migrate_data.original_guardian_name }}</p>
+                                    <p class="mb-1"><strong>رقم هوية ولي الأمر الحالي:</strong> {{ migrate_data.original_guardian_id }}</p>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    يرجى إكمال بيانات ولي الأمر الجديد أدناه. سيتم ترحيل 
+                                    {% if migrate_data.type == 'wife' %}
+                                        الزوجة
+                                    {% elif migrate_data.type == 'all_wives' %}
+                                        جميع الزوجات ({{ migrate_data.count }})
+                                    {% elif migrate_data.type == 'all_children' %}
+                                        جميع الأبناء ({{ migrate_data.count }})
+                                    {% else %}
+                                        الطفل
+                                    {% endif %} 
+                                    تلقائياً بعد إنشاء ولي الأمر.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            <a href="{% url 'basic_data:cancel_migration' %}" 
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('هل أنت متأكد من إلغاء عملية الترحيل؟')">
+                                <i class="bi bi-x-circle me-1"></i>إلغاء الترحيل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="POST" id="guardianForm">
+                    {% csrf_token %}
+                    
+                    <!-- البيانات الأساسية -->
+                    <div class="section-header">
+                        <h5><i class="bi bi-info-circle me-2"></i>البيانات الأساسية</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">اسم ولي الأمر <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{% if guardian %}{{ guardian.name }}{% endif %}" 
+                                   placeholder="أدخل الاسم الكامل" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="national_id" class="form-label">رقم الهوية <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="national_id" name="national_id" 
+                                   value="{% if guardian %}{{ guardian.national_id }}{% endif %}" 
+                                   placeholder="123456789" maxlength="9" pattern="[0-9]{9}" required>
+                            <div class="form-text">يجب أن يكون 9 أرقام</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="current_job" class="form-label">الوظيفة الحالية</label>
+                            <input type="text" class="form-control" id="current_job" name="current_job" 
+                                   value="{% if guardian %}{{ guardian.current_job }}{% endif %}" 
+                                   placeholder="مثال: موظف، عامل، متقاعد">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="phone_number" class="form-label">رقم الجوال <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                   value="{% if guardian %}{{ guardian.phone_number }}{% endif %}" 
+                                   placeholder="0599123456" required>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="gender" class="form-label">الجنس <span class="text-danger">*</span></label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="">اختر الجنس</option>
+                                <option value="ذكر" {% if guardian and guardian.gender == "ذكر" %}selected{% endif %}>ذكر</option>
+                                <option value="أنثى" {% if guardian and guardian.gender == "أنثى" %}selected{% endif %}>أنثى</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- البيانات العائلية -->
+                    <div class="section-header">
+                        <h5><i class="bi bi-heart me-2"></i>البيانات العائلية</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="marital_status" class="form-label">الحالة الاجتماعية <span class="text-danger">*</span></label>
+                            <select class="form-select" id="marital_status" name="marital_status" required>
+                                <option value="">اختر الحالة الاجتماعية</option>
+                                {% for value, label in marital_choices %}
+                                    <option value="{{ value }}" {% if guardian and guardian.marital_status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="wives_count" class="form-label">عدد الزوجات</label>
+                            <input type="number" class="form-control" id="wives_count" name="wives_count" 
+                                   value="{{ guardian.wives_count|default:0 }}" 
+                                   min="0" max="4" placeholder="عدد الزوجات" onchange="calculateFamilyMembers()">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="children_count" class="form-label">عدد الأبناء</label>
+                            <input type="number" class="form-control" id="children_count" name="children_count" 
+                                   value="{{ guardian.children_count|default:0 }}" 
+                                   min="0" placeholder="عدد الأبناء" onchange="calculateFamilyMembers()">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="family_members_count" class="form-label">عدد أفراد العائلة</label>
+                            <input type="number" class="form-control" id="family_members_count" name="family_members_count" 
+                                   value="{% if guardian %}{{ guardian.family_members_count }}{% else %}1{% endif %}" 
+                                   readonly style="background-color: #f8f9fa;">
+                            <div class="form-text">يُحسب تلقائياً: عدد الأبناء + عدد الزوجات + 1</div>
+                        </div>
+                    </div>
+                    
+                    <!-- حالة الإقامة -->
+                    <div class="section-header">
+                        <h5><i class="bi bi-house me-2"></i>حالة الإقامة</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="residence_status" class="form-label">حالة الإقامة <span class="text-danger">*</span></label>
+                            <select class="form-select" id="residence_status" name="residence_status" required>
+                                <option value="">اختر حالة الإقامة</option>
+                                <option value="مقيم" {% if guardian and guardian.residence_status == "مقيم" %}selected{% endif %}>مقيم</option>
+                                <option value="نازح" {% if guardian and guardian.residence_status == "نازح" %}selected{% endif %}>نازح</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- بيانات النزوح (تظهر إذا كان نازح) -->
+                    <div id="displacement_fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="original_governorate" class="form-label">المحافظة الأصلية</label>
+                                <input type="text" class="form-control" id="original_governorate" name="original_governorate" 
+                                       value="{% if guardian %}{{ guardian.original_governorate }}{% endif %}" 
+                                       placeholder="مثال: غزة، الشمال، الوسطى">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="original_city" class="form-label">المدينة الأصلية</label>
+                                <input type="text" class="form-control" id="original_city" name="original_city" 
+                                       value="{% if guardian %}{{ guardian.original_city }}{% endif %}" 
+                                       placeholder="مثال: بيت حانون، جباليا">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="displacement_address" class="form-label">عنوان النزوح الحالي</label>
+                                <input type="text" class="form-control" id="displacement_address" name="displacement_address" 
+                                       value="{% if guardian %}{{ guardian.displacement_address }}{% endif %}" 
+                                       placeholder="العنوان الحالي">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- العنوان والسكن -->
+                    <div class="section-header">
+                        <h5><i class="bi bi-geo-alt me-2"></i>العنوان والسكن</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="district" class="form-label">الحي <span class="text-danger">*</span></label>
+                            <select class="form-select" id="district" name="district" required>
+                                <option value="">اختر الحي</option>
+                                {% for district in districts %}
+                                    <option value="{{ district.pk }}" 
+                                            {% if guardian and guardian.district and guardian.district.pk == district.pk %}selected{% endif %}>
+                                        {{ district.name }} - {{ district.representative_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="housing_type" class="form-label">نوع السكن</label>
+                            <select class="form-select" id="housing_type" name="housing_type">
+                                <option value="">اختر نوع السكن</option>
+                                <option value="ملك" {% if guardian and guardian.housing_type == "ملك" %}selected{% endif %}>ملك</option>
+                                <option value="إيجار" {% if guardian and guardian.housing_type == "إيجار" %}selected{% endif %}>إيجار</option>
+                                <option value="مع الأهل" {% if guardian and guardian.housing_type == "مع الأهل" %}selected{% endif %}>مع الأهل</option>
+                                <option value="أخرى" {% if guardian and guardian.housing_type == "أخرى" %}selected{% endif %}>أخرى</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- معلومات إضافية -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>ملاحظة:</strong> عدد أفراد العائلة سيتم حسابه تلقائياً (الأبناء + الزوجات + 1)
+                    </div>
+                    
+                    <!-- قسم الزوجات الديناميكي - فقط في حالة التعديل -->
+                    {% if guardian %}
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-person-heart me-2"></i>الزوجات</h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addWifeField()">
+                                    <i class="bi bi-plus me-1"></i>إضافة زوجة جديدة
+                                </button>
+                                {% if available_wives %}
+                                <button type="button" class="btn btn-sm btn-outline-success ms-2" data-bs-toggle="collapse" 
+                                        data-bs-target="#availableWivesSection" aria-expanded="false">
+                                    <i class="bi bi-link-45deg me-1"></i>ربط زوجات موجودة ({{ total_available_wives }})
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- قسم الزوجات المتاحات للاختيار -->
+                            {% if available_wives %}
+                            <div class="collapse mb-3" id="availableWivesSection">
+                                <div class="alert alert-success">
+                                    <h6><i class="bi bi-link-45deg me-2"></i>ربط زوجات موجودات في النظام:</h6>
+                                    <small class="text-muted">يمكنك اختيار زوجات موجودات مسبقاً في النظام لربطهن بولي الأمر هذا. سيتم نقل الزوجة من ولي الأمر الحالي إلى ولي الأمر هذا.</small>
+                                    
+                                    {% if total_available_wives > 0 %}
+                                    <div class="row mt-2">
+                                        {% for wife in available_wives %}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="existing_wife_{{ wife.id }}" 
+                                                       name="existing_wives" 
+                                                       value="{{ wife.id }}"
+                                                       onchange="toggleExistingWife({{ wife.id }}, '{{ wife.name }}', '{{ wife.national_id|default:'' }}')">
+                                                <label class="form-check-label" for="existing_wife_{{ wife.id }}">
+                                                    <strong>{{ wife.name }}</strong>
+                                                    {% if wife.national_id %}
+                                                        <br><small class="text-muted">هوية: {{ wife.national_id }}</small>
+                                                    {% endif %}
+                                                    <br><small class="text-warning">حالياً مع: {{ wife.guardian.name }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted mb-0 mt-2">لا توجد زوجات متاحة في النظام حالياً</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- الزوجات الحاليات (في حالة التعديل) -->
+                            {% if is_edit and current_wives %}
+                            <div class="alert alert-info mb-3">
+                                <h6><i class="bi bi-person-check me-2"></i>الزوجات الحاليات:</h6>
+                                <div class="row">
+                                    {% for wife in current_wives %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                                            <div>
+                                                <strong>{{ wife.name }}</strong>
+                                                {% if wife.national_id %}
+                                                    <br><small class="text-muted">هوية: {{ wife.national_id }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'basic_data:wife_edit' wife.id %}" class="btn btn-sm btn-outline-primary me-1" title="تعديل">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'basic_data:wife_delete' wife.id %}" class="btn btn-sm btn-outline-danger" 
+                                                   onclick="return confirm('هل أنت متأكد من حذف الزوجة {{ wife.name }}؟')" title="حذف">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- حقول الزوجات الجديدة -->
+                            <div id="wivesContainer">
+                                <!-- سيتم إضافة حقول الزوجات هنا ديناميكياً -->
+                            </div>
+                            
+                            <div class="text-muted small mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                يمكنك إضافة زوجات جديدة أو ربط زوجات موجودات مسبقاً في النظام
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- قسم الأبناء الديناميكي - فقط في حالة التعديل -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-people me-2"></i>الأبناء</h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addChildField()">
+                                    <i class="bi bi-plus me-1"></i>إضافة ابن جديد
+                                </button>
+                                {% if available_children %}
+                                <button type="button" class="btn btn-sm btn-outline-success ms-2" data-bs-toggle="collapse" 
+                                        data-bs-target="#availableChildrenSection" aria-expanded="false">
+                                    <i class="bi bi-link-45deg me-1"></i>ربط أبناء موجودين ({{ total_available_children }})
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- قسم الأبناء المتاحين للاختيار -->
+                            {% if available_children %}
+                            <div class="collapse mb-3" id="availableChildrenSection">
+                                <div class="alert alert-success">
+                                    <h6><i class="bi bi-link-45deg me-2"></i>ربط أبناء موجودين في النظام:</h6>
+                                    <small class="text-muted">يمكنك اختيار أبناء موجودين مسبقاً في النظام لربطهم بولي الأمر هذا. سيتم نقل الابن من ولي الأمر الحالي إلى ولي الأمر هذا.</small>
+                                    
+                                    {% if total_available_children > 0 %}
+                                    <div class="row mt-2">
+                                        {% for child in available_children %}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="existing_child_{{ child.id }}" 
+                                                       name="existing_children" 
+                                                       value="{{ child.id }}"
+                                                       onchange="toggleExistingChild({{ child.id }}, '{{ child.name }}', '{{ child.national_id|default:'' }}', '{{ child.birth_date|date:'Y-m-d' }}', '{{ child.gender }}')">
+                                                <label class="form-check-label" for="existing_child_{{ child.id }}">
+                                                    <strong>{{ child.name }}</strong> ({{ child.age }} سنة)
+                                                    <br><small class="text-muted">{{ child.gender }} - {{ child.birth_date|date:'Y/m/d' }}</small>
+                                                    {% if child.national_id %}
+                                                        <br><small class="text-muted">هوية: {{ child.national_id }}</small>
+                                                    {% endif %}
+                                                    <br><small class="text-warning">حالياً مع: {{ child.guardian.name }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted mb-0 mt-2">لا يوجد أبناء متاحون في النظام حالياً</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- الأبناء الحاليون (في حالة التعديل) -->
+                            {% if is_edit and current_children %}
+                            <div class="alert alert-info mb-3">
+                                <h6><i class="bi bi-people-fill me-2"></i>الأبناء الحاليون:</h6>
+                                <div class="row">
+                                    {% for child in current_children %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                                            <div>
+                                                <strong>{{ child.name }}</strong> ({{ child.age }} سنة)
+                                                <br><small class="text-muted">{{ child.gender }} - {{ child.birth_date|date:'Y/m/d' }}</small>
+                                                {% if child.national_id %}
+                                                    <br><small class="text-muted">هوية: {{ child.national_id }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'basic_data:child_edit' child.id %}" class="btn btn-sm btn-outline-primary me-1" title="تعديل">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'basic_data:child_delete' child.id %}" class="btn btn-sm btn-outline-danger" 
+                                                   onclick="return confirm('هل أنت متأكد من حذف الابن {{ child.name }}؟')" title="حذف">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- حقول الأبناء الجديدة -->
+                            <div id="childrenContainer">
+                                <!-- سيتم إضافة حقول الأبناء هنا ديناميكياً -->
+                            </div>
+                            
+                            <div class="text-muted small mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                يمكنك إضافة أبناء جدد أو ربط أبناء موجودين مسبقاً في النظام
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
+                        </a>
+                        <div>
+                            {% if guardian %}
+                                <a href="{% url 'basic_data:guardian_detail' guardian.pk %}" class="btn btn-info me-2">
+                                    <i class="bi bi-eye me-2"></i>عرض التفاصيل
+                                </a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check me-2"></i>
+                                {% if guardian %}تحديث البيانات{% else %}إضافة ولي الأمر{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- عرض الزوجات والأبناء في حالة التعديل -->
+        {% if is_edit and guardian %}
+        <div class="row mt-4">
+            <!-- الزوجات -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-friends me-2"></i>الزوجات ({{ current_wives.count }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if current_wives %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>رقم الهوية</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for wife in current_wives %}
+                                        <tr>
+                                            <td>{{ wife.name }}</td>
+                                            <td>{{ wife.national_id|default:"غير محدد" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">لا توجد زوجات مسجلة</p>
+                        {% endif %}
+                        <div class="mt-3">
+                            <a href="{% url 'basic_data:wife_create' %}?guardian={{ guardian.id }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>إضافة زوجة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الأبناء -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-baby me-2"></i>الأبناء ({{ current_children.count }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if current_children %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>العمر</th>
+                                            <th>الجنس</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for child in current_children %}
+                                        <tr>
+                                            <td>{{ child.name }}</td>
+                                            <td>{{ child.age }} سنة</td>
+                                            <td>{{ child.gender }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">لا يوجد أبناء مسجلون</p>
+                        {% endif %}
+                        <div class="mt-3">
+                            <a href="{% url 'basic_data:child_create' %}?guardian={{ guardian.id }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>إضافة ابن/ابنة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let wifeCounter = 0;
+let childCounter = 0;
+let selectedExistingWives = new Set();
+let selectedExistingChildren = new Set();
+let usedNationalIds = new Set();
+
+// إدارة عرض حقول النزوح
+document.addEventListener('DOMContentLoaded', function() {
+    const residenceStatus = document.getElementById('residence_status');
+    const displacementFields = document.getElementById('displacement_fields');
+    
+    function toggleDisplacementFields() {
+        if (residenceStatus.value === 'نازح') {
+            displacementFields.style.display = 'block';
+        } else {
+            displacementFields.style.display = 'none';
+        }
+    }
+    
+    residenceStatus.addEventListener('change', toggleDisplacementFields);
+    toggleDisplacementFields(); // تشغيل عند تحميل الصفحة
+    
+    // تحديث العدادات عند تحميل الصفحة
+    updateCounts();
+    
+    // حساب أفراد العائلة عند تحميل الصفحة
+    calculateFamilyMembers();
+    
+    // في حالة التعديل، إضافة البيانات الحالية إلى مجموعة أرقام الهوية المستخدمة
+    {% if is_edit %}
+        {% for wife in current_wives %}
+            {% if wife.national_id %}
+                usedNationalIds.add('{{ wife.national_id }}');
+            {% endif %}
+        {% endfor %}
+        
+        {% for child in current_children %}
+            {% if child.national_id %}
+                usedNationalIds.add('{{ child.national_id }}');
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+});
+
+// إضافة حقل زوجة جديد
+function addWifeField() {
+    wifeCounter++;
+    const container = document.getElementById('wivesContainer');
+    
+    const wifeDiv = document.createElement('div');
+    wifeDiv.className = 'wife-field border rounded p-3 mb-3 bg-light';
+    wifeDiv.id = `wife_${wifeCounter}`;
+    
+    wifeDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0 text-primary">زوجة ${wifeCounter}</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWifeField(${wifeCounter})">
+                <i class="bi bi-trash"></i> حذف
+            </button>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="form-label">اسم الزوجة <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="wife_name_${wifeCounter}" required>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">رقم هوية الزوجة (اختياري)</label>
+                <input type="text" class="form-control" name="wife_national_id_${wifeCounter}" 
+                       pattern="[0-9]{9}" maxlength="9" placeholder="9 أرقام"
+                       onchange="validateNationalId(this, 'wife')">
+                <div class="invalid-feedback">رقم الهوية مكرر أو غير صحيح</div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(wifeDiv);
+    updateCounts();
+}
+
+// إضافة حقل طفل جديد
+function addChildField() {
+    childCounter++;
+    const container = document.getElementById('childrenContainer');
+    
+    const childDiv = document.createElement('div');
+    childDiv.className = 'child-field border rounded p-3 mb-3 bg-light';
+    childDiv.id = `child_${childCounter}`;
+    
+    childDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0 text-primary">طفل ${childCounter}</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeChildField(${childCounter})">
+                <i class="bi bi-trash"></i> حذف
+            </button>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <label class="form-label">اسم الطفل <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="child_name_${childCounter}" required>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">تاريخ الميلاد <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" name="child_birth_date_${childCounter}" required>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">رقم الهوية (اختياري)</label>
+                <input type="text" class="form-control" name="child_national_id_${childCounter}" 
+                       pattern="[0-9]{9}" maxlength="9" placeholder="9 أرقام"
+                       onchange="validateNationalId(this, 'child')">
+                <div class="invalid-feedback">رقم الهوية مكرر أو غير صحيح</div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label">الجنس <span class="text-danger">*</span></label>
+                <select class="form-select" name="child_gender_${childCounter}" required>
+                    <option value="">اختر الجنس</option>
+                    <option value="ذكر">ذكر</option>
+                    <option value="أنثى">أنثى</option>
+                </select>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(childDiv);
+    updateCounts();
+}
+
+// حذف حقل زوجة
+function removeWifeField(id) {
+    const field = document.getElementById(`wife_${id}`);
+    if (field) {
+        // إزالة رقم الهوية من المجموعة المستخدمة
+        const nationalIdInput = field.querySelector(`input[name="wife_national_id_${id}"]`);
+        if (nationalIdInput && nationalIdInput.value) {
+            usedNationalIds.delete(nationalIdInput.value);
+        }
+        field.remove();
+        updateCounts();
+    }
+}
+
+// حذف حقل طفل
+function removeChildField(id) {
+    const field = document.getElementById(`child_${id}`);
+    if (field) {
+        // إزالة رقم الهوية من المجموعة المستخدمة
+        const nationalIdInput = field.querySelector(`input[name="child_national_id_${id}"]`);
+        if (nationalIdInput && nationalIdInput.value) {
+            usedNationalIds.delete(nationalIdInput.value);
+        }
+        field.remove();
+        updateCounts();
+    }
+}
+
+// التحكم في الزوجات الموجودات
+function toggleExistingWife(wifeId, wifeName, wifeNationalId) {
+    const checkbox = document.getElementById(`existing_wife_${wifeId}`);
+    
+    if (checkbox.checked) {
+        // التحقق من تكرار رقم الهوية
+        if (wifeNationalId && usedNationalIds.has(wifeNationalId)) {
+            alert('رقم الهوية مكرر! يرجى التحقق من البيانات.');
+            checkbox.checked = false;
+            return;
+        }
+        
+        selectedExistingWives.add(wifeId);
+        if (wifeNationalId) {
+            usedNationalIds.add(wifeNationalId);
+        }
+    } else {
+        selectedExistingWives.delete(wifeId);
+        if (wifeNationalId) {
+            usedNationalIds.delete(wifeNationalId);
+        }
+    }
+    
+    updateCounts();
+}
+
+// التحكم في الأبناء الموجودين
+function toggleExistingChild(childId, childName, childNationalId, childBirthDate, childGender) {
+    const checkbox = document.getElementById(`existing_child_${childId}`);
+    
+    if (checkbox.checked) {
+        // التحقق من تكرار رقم الهوية
+        if (childNationalId && usedNationalIds.has(childNationalId)) {
+            alert('رقم الهوية مكرر! يرجى التحقق من البيانات.');
+            checkbox.checked = false;
+            return;
+        }
+        
+        selectedExistingChildren.add(childId);
+        if (childNationalId) {
+            usedNationalIds.add(childNationalId);
+        }
+    } else {
+        selectedExistingChildren.delete(childId);
+        if (childNationalId) {
+            usedNationalIds.delete(childNationalId);
+        }
+    }
+    
+    updateCounts();
+}
+
+// التحقق من صحة رقم الهوية
+function validateNationalId(input, type) {
+    const value = input.value.trim();
+    
+    if (value === '') {
+        input.classList.remove('is-invalid');
+        return true;
+    }
+    
+    // التحقق من التنسيق
+    if (!/^\d{9}$/.test(value)) {
+        input.classList.add('is-invalid');
+        return false;
+    }
+    
+    // التحقق من التكرار
+    if (usedNationalIds.has(value)) {
+        input.classList.add('is-invalid');
+        return false;
+    }
+    
+    // إزالة القيمة السابقة إذا كانت موجودة
+    const oldValue = input.getAttribute('data-old-value');
+    if (oldValue && oldValue !== value) {
+        usedNationalIds.delete(oldValue);
+    }
+    
+    // إضافة القيمة الجديدة
+    usedNationalIds.add(value);
+    input.setAttribute('data-old-value', value);
+    input.classList.remove('is-invalid');
+    
+    return true;
+}
+
+// تحديث العدادات (لا تؤثر على القيم الأصلية من قاعدة البيانات)
+function updateCounts() {
+    // حساب أفراد العائلة فقط
+    calculateFamilyMembers();
+}
+
+// التحقق من النموذج قبل الإرسال
+function validateForm() {
+    // التحقق من أرقام الهوية
+    const nationalIdInputs = document.querySelectorAll('input[pattern="[0-9]{9}"]');
+    let isValid = true;
+    
+    nationalIdInputs.forEach(input => {
+        if (!validateNationalId(input, 'general')) {
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) {
+        alert('يرجى التحقق من أرقام الهوية المكررة أو غير الصحيحة');
+        return false;
+    }
+    
+    return true;
+}
+
+// ربط التحقق بالنموذج
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // حساب عدد أفراد العائلة عند تحميل الصفحة
+    calculateFamilyMembers();
+});
+
+// حساب عدد أفراد العائلة تلقائياً
+function calculateFamilyMembers() {
+    const wivesCount = parseInt(document.getElementById('wives_count').value) || 0;
+    const childrenCount = parseInt(document.getElementById('children_count').value) || 0;
+    const familyMembersCount = 1 + wivesCount + childrenCount; // 1 (ولي الأمر) + الزوجات + الأبناء
+    
+    document.getElementById('family_members_count').value = familyMembersCount;
+}
+</script>
+{% endblock %} 

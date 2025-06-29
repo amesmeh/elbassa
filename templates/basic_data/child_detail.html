@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="bi bi-person me-2"></i>{{ title }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'basic_data:basic_data_home' %}">البيانات الأساسية</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'basic_data:children_list' %}">الأبناء</a></li>
+                            <li class="breadcrumb-item active">{{ child.name }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'basic_data:child_edit' child.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil me-2"></i>تعديل
+                    </a>
+                    <a href="{% url 'basic_data:child_delete' child.pk %}" class="btn btn-danger"
+                       onclick="return confirm('هل أنت متأكد من حذف الطفل {{ child.name }}؟')">
+                        <i class="bi bi-trash me-2"></i>حذف
+                    </a>
+                    <a href="{% url 'basic_data:children_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>العودة للقائمة
+                    </a>
+                </div>
+            </div>
+
+            <!-- بيانات الطفل -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-person me-2"></i>بيانات الطفل</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">اسم الطفل</label>
+                                    <div class="fw-bold">{{ child.name }}</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">الجنس</label>
+                                    <div class="fw-bold">
+                                        {% if child.gender == "ذكر" %}
+                                            <span class="badge bg-info">{{ child.gender }}</span>
+                                        {% else %}
+                                            <span class="badge bg-pink">{{ child.gender }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">تاريخ الميلاد</label>
+                                    <div class="fw-bold">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        {{ child.birth_date|date:"d/m/Y" }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">العمر</label>
+                                    <div class="fw-bold">
+                                        <span class="badge bg-primary">{{ child.age }} سنة</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">رقم الهوية</label>
+                                    <div class="fw-bold">
+                                        {% if child.national_id %}
+                                            <span class="badge bg-secondary">{{ child.national_id }}</span>
+                                        {% else %}
+                                            <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">تاريخ الإضافة</label>
+                                    <div class="fw-bold">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ child.created_at|date:"d/m/Y H:i" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- بيانات ولي الأمر -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-person-circle me-2"></i>ولي الأمر</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <div class="mb-2">
+                                <strong>{{ child.guardian.name }}</strong>
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge bg-info">{{ child.guardian.national_id }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">{{ child.guardian.current_job|default:"غير محدد" }}</small>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">{{ child.guardian.phone_number|default:"غير محدد" }}</small>
+                            </div>
+                            <div class="d-grid">
+                                <a href="{% url 'basic_data:guardian_detail' child.guardian.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>عرض تفاصيل ولي الأمر
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- معلومات إضافية -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5><i class="bi bi-info-circle me-2"></i>معلومات إضافية</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>الحي:</strong>
+                                {% if child.guardian.district %}
+                                    <span class="badge bg-success">{{ child.guardian.district.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">غير محدد</span>
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <strong>حالة الإقامة:</strong>
+                                <span class="badge bg-warning">{{ child.guardian.get_residence_status_display }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>عدد أفراد العائلة:</strong>
+                                <span class="badge bg-primary">{{ child.guardian.family_members_count }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>عدد الأطفال:</strong>
+                                <span class="badge bg-info">{{ child.guardian.children_count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

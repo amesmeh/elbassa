@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}البيانات الأساسية - نظام المساعدات{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="page-title">
+                    <i class="bi bi-database text-primary"></i>
+                    إدارة البيانات الأساسية
+                </h1>
+                <p class="page-subtitle text-white">إدارة المناطق وأولياء الأمور والعائلات</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- الأقسام الرئيسية -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <a href="{% url 'basic_data:districts_list' %}" class="text-decoration-none">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-geo-alt text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="card-title text-primary mb-0">المناطق والأحياء</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <a href="{% url 'basic_data:guardians_list' %}" class="text-decoration-none">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="card-title text-success mb-0">أولياء الأمور</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <a href="{% url 'basic_data:wives_list' %}" class="text-decoration-none">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-people text-info" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="card-title text-info mb-0">الزوجات</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <a href="{% url 'basic_data:children_list' %}" class="text-decoration-none">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-hearts text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="card-title text-warning mb-0">الأبناء</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-primary text-white border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-1">{{ total_guardians }}</h2>
+                            <p class="card-text mb-0">أولياء الأمور</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-person" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-success text-white border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-1">{{ total_children }}</h2>
+                            <p class="card-text mb-0">الأبناء</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-person-hearts" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-info text-white border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-1">{{ total_wives }}</h2>
+                            <p class="card-text mb-0">الزوجات</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-people" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient-warning text-white border-0 shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-1">{{ total_districts }}</h2>
+                            <p class="card-text mb-0">المناطق</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-geo-alt" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آخر أولياء الأمور المضافين -->
+    {% if recent_guardians %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock text-primary me-2"></i>
+                        آخر أولياء الأمور المضافين
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الحي</th>
+                                    <th>عدد الأطفال</th>
+                                    <th>الحالة الاجتماعية</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for guardian in recent_guardians %}
+                                <tr>
+                                    <td><strong>{{ guardian.name }}</strong></td>
+                                    <td>{{ guardian.national_id }}</td>
+                                    <td>{{ guardian.district.name|default:"غير محدد" }}</td>
+                                    <td>{{ guardian.children_count }}</td>
+                                    <td>{{ guardian.get_marital_status_display }}</td>
+                                    <td>
+                                        <a href="{% url 'basic_data:guardian_detail' guardian.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- قسم المساعدة -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-header bg-transparent border-bottom-0">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-question-circle text-info me-2"></i>
+                        المساعدة والدعم
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">أخطاء الاستيراد</h6>
+                                    <p class="text-muted mb-0">تعلم كيفية عرض وحل أخطاء استيراد ملفات Excel</p>
+                                </div>
+                            </div>
+                            <a href="{% url 'basic_data:import_errors_help' %}" class="btn btn-outline-info">
+                                <i class="bi bi-book me-2"></i>دليل أخطاء الاستيراد
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-file-earmark-excel text-success" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">نماذج Excel</h6>
+                                    <p class="text-muted mb-0">تحميل النماذج الجاهزة لاستيراد البيانات</p>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <a href="{% url 'basic_data:download_guardians_template' %}" class="btn btn-outline-success btn-sm">أولياء الأمور</a>
+                                <a href="{% url 'basic_data:download_children_template' %}" class="btn btn-outline-success btn-sm">الأبناء</a>
+                                <a href="{% url 'basic_data:download_wives_template' %}" class="btn btn-outline-success btn-sm">الزوجات</a>
+                                <a href="{% url 'basic_data:download_districts_template' %}" class="btn btn-outline-success btn-sm">الأحياء</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- قسم فحص سلامة البيانات والتشخيص -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-shield-check text-danger" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">فحص سلامة بيانات المساعدات</h6>
+                                    <p class="text-muted mb-0">التحقق من سلامة بيانات المساعدات وعدم وجود تضارب</p>
+                                </div>
+                            </div>
+                            {% if user.is_staff %}
+                            <a href="{% url 'basic_data:check_aids_data_integrity' %}" class="btn btn-outline-danger">
+                                <i class="bi bi-shield-check me-2"></i>فحص سلامة البيانات
+                            </a>
+                            {% else %}
+                            <small class="text-muted">متاح للمشرفين فقط</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">البحث المباشر في المساعدات</h6>
+                                    <p class="text-muted mb-0">البحث المباشر في جداول المساعدات لتشخيص مشاكل الربط</p>
+                                </div>
+                            </div>
+                            {% if user.is_staff %}
+                            <a href="{% url 'basic_data:search_aids_by_name' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-database me-2"></i>البحث المباشر
+                            </a>
+                            {% else %}
+                            <small class="text-muted">متاح للمشرفين فقط</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.page-header {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+</style>
+{% endblock %} 

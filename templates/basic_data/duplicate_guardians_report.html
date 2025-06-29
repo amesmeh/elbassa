@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .duplicate-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        margin-bottom: 1rem;
+        background: #fff;
+    }
+    .duplicate-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: bold;
+    }
+    .duplicate-body {
+        padding: 1rem;
+    }
+    .guardian-info {
+        background: #e3f2fd;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+    .wife-info {
+        background: #fce4ec;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+    .match-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    .match-id { background: #d4edda; color: #155724; }
+    .match-name { background: #fff3cd; color: #856404; }
+    .stats-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .no-duplicates {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-users-slash"></i>
+                        {{ title }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> العودة لقائمة أولياء الأمور
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- فلاتر البحث -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-filter"></i>
+                                        فلاتر التصفية
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="GET" class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">الحالة الاجتماعية</label>
+                                            <select name="marital_status" class="form-select">
+                                                <option value="">جميع الحالات</option>
+                                                <option value="متزوج" {% if marital_status_filter == 'متزوج' %}selected{% endif %}>متزوج</option>
+                                                <option value="أرمل" {% if marital_status_filter == 'أرمل' %}selected{% endif %}>أرمل</option>
+                                                <option value="مطلق" {% if marital_status_filter == 'مطلق' %}selected{% endif %}>مطلق</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <label class="form-label">عدد الزوجات</label>
+                                            <select name="wives_count" class="form-select">
+                                                <option value="">أي عدد</option>
+                                                <option value="1" {% if wives_count_filter == '1' %}selected{% endif %}>زوجة واحدة</option>
+                                                <option value="2" {% if wives_count_filter == '2' %}selected{% endif %}>زوجتان</option>
+                                                <option value="3" {% if wives_count_filter == '3' %}selected{% endif %}>ثلاث زوجات</option>
+                                                <option value="4" {% if wives_count_filter == '4' %}selected{% endif %}>أربع زوجات</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-3">
+                                            <label class="form-label">أخطاء البيانات</label>
+                                            <select name="show_data_errors" class="form-select">
+                                                <option value="">عرض الكل</option>
+                                                <option value="only" {% if show_data_errors == 'only' %}selected{% endif %}>أخطاء البيانات فقط</option>
+                                                <option value="exclude" {% if show_data_errors == 'exclude' %}selected{% endif %}>استثناء أخطاء البيانات</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary me-2">
+                                                <i class="fas fa-search"></i> تطبيق الفلاتر
+                                            </button>
+                                            <a href="{% url 'basic_data:duplicate_guardians_report' %}?marital_status=متزوج&wives_count=1" class="btn btn-success me-2" title="المتزوجين بزوجة واحدة فقط">
+                                                <i class="fas fa-heart"></i> زوجة واحدة
+                                            </a>
+                                            <a href="{% url 'basic_data:duplicate_guardians_report' %}" class="btn btn-outline-secondary">
+                                                <i class="fas fa-redo"></i> إعادة تعيين
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- إحصائيات سريعة -->
+                    <div class="stats-card">
+                        <div class="row">
+                            <div class="col-lg-2 col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-primary">{{ total_duplicates }}</h4>
+                                    <small class="text-muted">إجمالي الحالات المكررة</small>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-success">{{ id_matches }}</h4>
+                                    <small class="text-muted">تطابق برقم الهوية</small>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-warning">{{ name_matches }}</h4>
+                                    <small class="text-muted">تطابق بالاسم</small>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-danger">{{ data_errors_count }}</h4>
+                                    <small class="text-muted">أخطاء البيانات</small>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-info">{{ duplicates|length }}</h4>
+                                    <small class="text-muted">
+                                        {% if marital_status_filter or wives_count_filter or show_data_errors %}
+                                            النتائج المفلترة
+                                        {% else %}
+                                            عدد الأزواج المكررين
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-secondary">{{ duplicates|length|add:data_errors_count }}</h4>
+                                    <small class="text-muted">المجموع الكلي</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if duplicates %}
+                        <div class="row">
+                            {% for duplicate in duplicates %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="duplicate-card {% if duplicate.has_data_error %}border-danger{% endif %}">
+                                    <div class="duplicate-header {% if duplicate.has_data_error %}bg-danger text-white{% endif %}">
+                                        <span class="match-badge {% if duplicate.match_type == 'رقم الهوية' %}match-id{% else %}match-name{% endif %}">
+                                            تطابق: {{ duplicate.match_type }}
+                                        </span>
+                                        {% if duplicate.has_data_error %}
+                                            <span class="badge bg-warning text-dark ms-2">
+                                                <i class="fas fa-exclamation-triangle"></i> خطأ بيانات
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="duplicate-body">
+                                        <!-- معلومات الزوج -->
+                                        <div class="guardian-info">
+                                            <strong>الزوج (ولي أمر):</strong><br>
+                                            <i class="fas fa-user"></i> {{ duplicate.husband_guardian.name }}<br>
+                                            <i class="fas fa-id-card"></i> {{ duplicate.husband_id|default:"غير محدد" }}<br>
+                                            <i class="fas fa-phone"></i> {{ duplicate.husband_guardian.phone_number|default:"غير محدد" }}<br>
+                                            <i class="fas fa-map-marker-alt"></i> {{ duplicate.husband_guardian.district.name|default:"غير محدد" }}<br>
+                                            <i class="fas fa-heart"></i> {{ duplicate.husband_guardian.marital_status|default:"غير محدد" }}<br>
+                                            <i class="fas fa-users"></i> عدد الزوجات: {{ duplicate.husband_guardian.wives_count }}
+                                        </div>
+
+                                        <!-- معلومات الزوجة كسجل زوجة -->
+                                        <div class="wife-info">
+                                            <strong>الزوجة (في سجل الزوجات):</strong><br>
+                                            <i class="fas fa-user"></i> {{ duplicate.wife_record.name }}<br>
+                                            <i class="fas fa-id-card"></i> {{ duplicate.wife_id }}<br>
+                                            {% if duplicate.wife_record.national_id == duplicate.husband_guardian.national_id %}
+                                                <small class="text-danger">
+                                                    <i class="fas fa-exclamation-triangle"></i> 
+                                                    نفس رقم هوية الزوج - خطأ في البيانات
+                                                </small>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- معلومات الزوجة كولي أمر -->
+                                        <div class="guardian-info">
+                                            <strong>نفس الزوجة (ولي أمر منفصل):</strong><br>
+                                            <i class="fas fa-user"></i> {{ duplicate.wife_guardian.name }}<br>
+                                            <i class="fas fa-id-card"></i> {{ duplicate.wife_guardian.national_id|default:"غير محدد" }}<br>
+                                            <i class="fas fa-phone"></i> {{ duplicate.wife_guardian.phone_number|default:"غير محدد" }}<br>
+                                            <i class="fas fa-map-marker-alt"></i> {{ duplicate.wife_guardian.district.name|default:"غير محدد" }}<br>
+                                            <i class="fas fa-venus"></i> {{ duplicate.wife_guardian.gender|default:"غير محدد" }}
+                                        </div>
+
+                                        <!-- روابط الإجراءات -->
+                                        <div class="mt-2">
+                                            <a href="{% url 'basic_data:guardian_detail' duplicate.husband_guardian.pk %}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye"></i> عرض الزوج
+                                            </a>
+                                            <a href="{% url 'basic_data:guardian_detail' duplicate.wife_guardian.pk %}" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> عرض الزوجة
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-duplicates">
+                            {% if marital_status_filter or wives_count_filter %}
+                                <i class="fas fa-filter fa-4x text-info mb-3"></i>
+                                <h4>لا توجد نتائج للفلاتر المطبقة</h4>
+                                <p class="text-muted">
+                                    لم يتم العثور على مكررين 
+                                    {% if marital_status_filter %}للحالة الاجتماعية: <strong>{{ marital_status_filter }}</strong>{% endif %}
+                                    {% if wives_count_filter %}بعدد زوجات: <strong>{{ wives_count_filter }}</strong>{% endif %}
+                                </p>
+                                <a href="{% url 'basic_data:duplicate_guardians_report' %}" class="btn btn-primary">
+                                    <i class="fas fa-redo"></i> عرض جميع المكررين
+                                </a>
+                            {% else %}
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <h4>لا توجد حالات تكرار</h4>
+                                <p class="text-muted">لم يتم العثور على أولياء أمور مكررين (زوج وزوجته كلاهما مسجل كولي أمر منفصل)</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // إضافة تأثيرات بصرية
+    $('.duplicate-card').hover(
+        function() {
+            $(this).css('box-shadow', '0 4px 8px rgba(0,0,0,0.1)');
+        },
+        function() {
+            $(this).css('box-shadow', 'none');
+        }
+    );
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+
+{% block title %}بيانات التوزيع - برنامج المساعدات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-box-seam me-2"></i>بيانات التوزيع</h4>
+                <div>
+                    <!-- قائمة Excel - معطلة مؤقتاً -->
+                    <!-- 
+                    <div class="btn-group me-2" role="group">
+                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'aids:export_distributions_excel' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                    <i class="bi bi-download me-2"></i>تصدير Excel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                                    <i class="bi bi-upload me-2"></i>استيراد Excel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'aids:download_distributions_template' %}">
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>تحميل النموذج
+                                </a>
+                            </li>
+                            {% if 'import_errors' in request.session %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'aids:download_import_errors' %}">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>تحميل ملف الأخطاء
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    -->
+                    
+                    {% comment %} إخفاء أزرار الحذف والإضافة عن المندوبين والمراقبين - إبقاء المشرفين فقط {% endcomment %}
+                    {% if user.is_superuser %}
+                    <!-- زر الحذف المتعدد -->
+                    <div class="btn-group me-2" role="group">
+                        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" 
+                                aria-expanded="false" id="deleteButton" disabled>
+                            <i class="bi bi-trash3 me-1"></i>حذف
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button type="button" class="dropdown-item text-warning" onclick="deleteSelected()">
+                                    <i class="bi bi-check2-square me-2"></i>حذف المحدد
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button type="button" class="dropdown-item text-danger" onclick="deleteAll()">
+                                    <i class="bi bi-trash3 me-2"></i>حذف الكل
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'aids:aids_home' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-right me-2"></i>العودة للمساعدات
+                    </a>
+                    <a href="{% url 'aids:beneficiaries_list' %}" class="btn btn-primary me-2">
+                        <i class="bi bi-people me-1"></i>بيانات المستفيدين
+                    </a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'aids:distribution_create' %}" class="btn btn-success">
+                        <i class="bi bi-plus me-1"></i>إضافة توزيع
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- شريط البحث والفلاتر -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <form method="GET" class="d-flex">
+                            <input type="text" name="search" class="form-control me-2" 
+                                   placeholder="البحث المرن بالاسم أو رقم الهوية..." 
+                                   value="{{ search_query }}"
+                                   title="البحث بالاسم أو رقم الهوية">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            {% if search_query %}
+                                <a href="{% url 'aids:distributions_list' %}" class="btn btn-outline-secondary ms-2">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            {% endif %}
+                        </form>
+                                                    <small class="text-muted">يمكن البحث بأجزاء من الاسم أو رقم الهوية</small>
+                    </div>
+                    <div class="col-md-8">
+                        <!-- فلاتر متقدمة قابلة للطي -->
+                        <div class="d-flex justify-content-end mb-2">
+                            <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#advancedFilters" aria-expanded="false">
+                                <i class="bi bi-funnel me-1"></i>فلاتر متقدمة
+                            </button>
+                        </div>
+                        
+                        <div class="collapse" id="advancedFilters">
+                            <div class="card card-body">
+                                <form method="GET" class="row g-2">
+                                    {% if search_query %}
+                                        <input type="hidden" name="search" value="{{ search_query }}">
+                                    {% endif %}
+                                    
+                                    <div class="col-md-2">
+                                        <label class="form-label">نوع المساعدة</label>
+                                        <select name="aid_type" class="form-select">
+                                            <option value="">جميع الأنواع</option>
+                                            {% for aid_type in aid_types %}
+                                                <option value="{{ aid_type.pk }}" 
+                                                        {% if selected_aid_type == aid_type.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ aid_type.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <label class="form-label">الحي</label>
+                                        <select name="district" class="form-select">
+                                            <option value="">جميع الأحياء</option>
+                                            {% for district in districts %}
+                                                <option value="{{ district.pk }}" 
+                                                        {% if selected_district == district.pk|stringformat:"s" %}selected{% endif %}>
+                                                    {{ district.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <label class="form-label">من تاريخ</label>
+                                        <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <label class="form-label">إلى تاريخ</label>
+                                        <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <label class="form-label">حالة الترحيل</label>
+                                        <select name="transfer_status" class="form-select">
+                                            <option value="">جميع الحالات</option>
+                                            <option value="transferred" {% if transfer_status == "transferred" %}selected{% endif %}>تم الترحيل</option>
+                                            <option value="not_transferred" {% if transfer_status == "not_transferred" %}selected{% endif %}>لم يتم الترحيل</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="bi bi-search me-1"></i>تطبيق
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="col-12 mt-2">
+                                        <a href="{% url 'aids:distributions_list' %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>إعادة تعيين
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- إحصائيات سريعة -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ total_count }}</h5>
+                                <small>إجمالي التوزيعات</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ transferred_count }}</h5>
+                                <small>تم ترحيلها</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ not_transferred_count }}</h5>
+                                <small>في انتظار الترحيل</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- أزرار الترحيل الجماعي -->
+                {% if page_obj %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <form method="POST" action="{% url 'aids:bulk_transfer_to_beneficiaries' %}" id="bulkTransferForm">
+                                {% csrf_token %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary" onclick="selectAll()">
+                                            <i class="bi bi-check-all me-1"></i>تحديد الكل
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="deselectAll()">
+                                            <i class="bi bi-x-square me-1"></i>إلغاء التحديد
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-success" onclick="return confirmBulkTransfer()">
+                                            <i class="bi bi-arrow-right-circle me-1"></i>ترحيل المحدد للمستفيدين
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- الجدول -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="distributionsTable">
+                            <thead>
+                                <tr>
+                                    <th width="50">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th>رقم الهوية</th>
+                                    <th>اسم ولي الأمر</th>
+                                    <th>نوع المساعدة</th>
+                                    <th>تاريخ التوزيع</th>
+                                    <th>رقم الجوال</th>
+                                    <th>الحي</th>
+                                    <th>حالة الترحيل</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for distribution in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input distribution-checkbox" 
+                                                   value="{{ distribution.pk }}">
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ distribution.guardian.national_id }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ distribution.guardian_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ distribution.aid_type.name }}</span>
+                                            <br><small class="text-muted">{{ distribution.aid_type.get_category_display }}</small>
+                                        </td>
+                                        <td>
+                                            <i class="bi bi-calendar me-1"></i>{{ distribution.distribution_date|date:"d/m/Y" }}
+                                        </td>
+                                        <td>
+                                            <i class="bi bi-phone me-1"></i>{{ distribution.guardian_phone }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ distribution.guardian_district }}</span>
+                                        </td>
+                                        <td>
+                                            {% if distribution.is_transferred %}
+                                                <span class="badge bg-success">تم الترحيل</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">في الانتظار</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <!-- زر العرض متاح للجميع -->
+                                                <a href="{% url 'aids:beneficiary_detail' distribution.guardian.pk %}" 
+                                                   class="btn btn-sm btn-outline-info" title="عرض تفاصيل المستفيد">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                
+                                                <!-- أزرار التعديل والحذف والترحيل للمشرفين فقط -->
+                                                {% if user.is_superuser %}
+                                                {% if not distribution.is_transferred %}
+                                                    <form method="POST" action="{% url 'aids:transfer_to_beneficiaries' distribution.pk %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-success" 
+                                                                title="ترحيل للمستفيدين" 
+                                                                onclick="return confirm('هل أنت متأكد من ترحيل هذا التوزيع للمستفيدين؟')">
+                                                            <i class="bi bi-arrow-right"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                <a href="{% url 'aids:distribution_edit' distribution.pk %}" 
+                                                   class="btn btn-sm btn-outline-warning" title="تعديل التوزيع">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'aids:distribution_create' %}?copy={{ distribution.pk }}" 
+                                                   class="btn btn-sm btn-outline-secondary" title="تكرار التوزيع">
+                                                    <i class="bi bi-copy"></i>
+                                                </a>
+                                                <a href="{% url 'aids:distribution_delete' distribution.pk %}" 
+                                                   class="btn btn-sm btn-outline-danger" title="حذف التوزيع">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="صفحات النتائج">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_aid_type %}&aid_type={{ selected_aid_type }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if transfer_status %}&transfer_status={{ transfer_status }}{% endif %}">الأولى</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_aid_type %}&aid_type={{ selected_aid_type }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if transfer_status %}&transfer_status={{ transfer_status }}{% endif %}">السابقة</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_aid_type %}&aid_type={{ selected_aid_type }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if transfer_status %}&transfer_status={{ transfer_status }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_aid_type %}&aid_type={{ selected_aid_type }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if transfer_status %}&transfer_status={{ transfer_status }}{% endif %}">التالية</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_aid_type %}&aid_type={{ selected_aid_type }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if transfer_status %}&transfer_status={{ transfer_status }}{% endif %}">الأخيرة</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-box-seam" style="font-size: 4rem; color: #ccc;"></i>
+                        <h5 class="mt-3 text-muted">لا توجد توزيعات</h5>
+                        <p class="text-muted">ابدأ بإضافة أول توزيع</p>
+                        {% if user.is_superuser %}
+                        <a href="{% url 'aids:distribution_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus me-2"></i>إضافة أول توزيع
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="bi bi-upload me-2"></i>استيراد التوزيعات من Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'aids:import_distributions_excel' %}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">اختر ملف Excel</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" 
+                               accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            يجب أن يكون الملف بصيغة Excel (.xlsx أو .xls)
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-lightbulb me-2"></i>تعليمات مهمة:</h6>
+                        <ul class="mb-0">
+                            <li>تأكد من أن الملف يحتوي على الأعمدة المطلوبة</li>
+                            <li>استخدم النموذج المحدد لضمان التوافق</li>
+                            <li>تأكد من صحة البيانات قبل الاستيراد</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>استيراد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تفعيل DataTables للجدول
+    $('#distributionsTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+        },
+        "pageLength": 20,
+        "order": [[ 4, "desc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": [0, 8] }
+        ],
+        "dom": 'Bfrtip',
+        "buttons": [
+            {
+                extend: 'excel',
+                text: '<i class="bi bi-file-earmark-excel me-1"></i>تصدير Excel',
+                className: 'btn btn-success btn-sm'
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="bi bi-file-earmark-pdf me-1"></i>تصدير PDF',
+                className: 'btn btn-danger btn-sm'
+            },
+            {
+                extend: 'print',
+                text: '<i class="bi bi-printer me-1"></i>طباعة',
+                className: 'btn btn-info btn-sm'
+            }
+        ]
+    });
+});
+
+// وظائف التحديد الجماعي
+function toggleAll(source) {
+    var checkboxes = document.querySelectorAll('.distribution-checkbox:not(:disabled)');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = source.checked;
+    }
+}
+
+function selectAll() {
+    var checkboxes = document.querySelectorAll('.distribution-checkbox:not(:disabled)');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = true;
+    }
+    document.getElementById('selectAllCheckbox').checked = true;
+}
+
+function deselectAll() {
+    var checkboxes = document.querySelectorAll('.distribution-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+    }
+    document.getElementById('selectAllCheckbox').checked = false;
+}
+
+function confirmBulkTransfer() {
+    var checkedBoxes = document.querySelectorAll('.distribution-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+        alert('يرجى تحديد توزيعات للترحيل');
+        return false;
+    }
+    return confirm('هل تريد ترحيل ' + checkedBoxes.length + ' توزيع إلى قائمة المستفيدين؟');
+}
+
+// حذف المحدد
+function deleteSelected() {
+    const selectedIds = $('.distribution-checkbox:checked').map(function() {
+        return this.value;
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        alert('يرجى تحديد توزيعات للحذف');
+        return;
+    }
+    
+    if (confirm(`هل أنت متأكد من حذف ${selectedIds.length} توزيع؟`)) {
+        const formData = new FormData();
+        selectedIds.forEach(id => formData.append('distribution_ids', id));
+        
+        fetch("{% url 'aids:delete_selected_distributions' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('حدث خطأ في الاتصال');
+        });
+    }
+}
+
+// حذف الكل
+function deleteAll() {
+    if (confirm('هل أنت متأكد من حذف جميع التوزيعات؟ هذا الإجراء لا يمكن التراجع عنه!')) {
+        if (confirm('تأكيد أخير: سيتم حذف جميع بيانات التوزيعات نهائياً!')) {
+            fetch("{% url 'aids:delete_all_distributions' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('خطأ: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('حدث خطأ في الاتصال');
+            });
+        }
+    }
+}
+
+// تحديث حالة زر الحذف
+$(document).ready(function() {
+    // تحديد الكل
+    $('#selectAll').change(function() {
+        $('.distribution-checkbox').prop('checked', this.checked);
+        updateDeleteButton();
+    });
+    
+    // تحديد فردي
+    $('.distribution-checkbox').change(function() {
+        if ($('.distribution-checkbox:checked').length === $('.distribution-checkbox').length) {
+            $('#selectAll').prop('checked', true);
+        } else {
+            $('#selectAll').prop('checked', false);
+        }
+        updateDeleteButton();
+    });
+    
+    // تحديث حالة زر الحذف
+    function updateDeleteButton() {
+        const checkedCount = $('.distribution-checkbox:checked').length;
+        $('#deleteButton').prop('disabled', checkedCount === 0);
+    }
+});
+</script>
+{% endblock %} 

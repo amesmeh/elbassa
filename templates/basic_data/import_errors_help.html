@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}مساعدة - أخطاء الاستيراد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-question-circle me-2"></i>كيفية عرض أخطاء الاستيراد</h4>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- المقدمة -->
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-info-circle me-2"></i>نظام عرض الأخطاء</h5>
+                        <p class="mb-0">
+                            يوفر النظام طريقتين لعرض أخطاء الاستيراد: العرض الفوري والملف المفصل.
+                        </p>
+                    </div>
+
+                    <!-- العرض الفوري -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="bi bi-1-circle text-primary me-2"></i>العرض الفوري للأخطاء</h5>
+                            <p>بعد استيراد ملف Excel مباشرة، تظهر الرسائل في أعلى الصفحة:</p>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="alert alert-success">
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        <strong>رسائل النجاح</strong><br>
+                                        تم استيراد 15 ولي أمر بنجاح
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-warning">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <strong>رسائل التحذير</strong><br>
+                                        الصف 5: الحي 'الشجاعية' غير موجود
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-danger">
+                                        <i class="bi bi-x-circle me-2"></i>
+                                        <strong>رسائل الخطأ</strong><br>
+                                        خطأ في قراءة الملف: تنسيق غير صحيح
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- زر تحميل ملف الأخطاء -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="bi bi-2-circle text-primary me-2"></i>زر تحميل ملف الأخطاء</h5>
+                            <p>يظهر في قائمة Excel المنسدلة عند وجود أخطاء:</p>
+                            
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                                            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="bi bi-download me-2"></i>تصدير Excel
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="bi bi-upload me-2"></i>استيراد Excel
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>تحميل النموذج
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#">
+                                                    <i class="bi bi-exclamation-triangle me-2"></i>تحميل ملف الأخطاء
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <small class="text-muted ms-2">يظهر زر "تحميل ملف الأخطاء" فقط عند وجود أخطاء</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- محتوى ملف الأخطاء -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="bi bi-3-circle text-primary me-2"></i>محتوى ملف الأخطاء المفصل</h5>
+                            <p>يحتوي ملف Excel على ورقتين:</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-danger text-white">
+                                            <h6 class="mb-0"><i class="bi bi-table me-2"></i>ورقة تفاصيل الأخطاء</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-unstyled mb-0">
+                                                <li><i class="bi bi-check text-success me-2"></i>رقم الصف</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>البيانات المدخلة</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>نوع الخطأ</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>تفاصيل الخطأ</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>تلوين الصفوف</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>ورقة ملخص الأخطاء</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-unstyled mb-0">
+                                                <li><i class="bi bi-check text-success me-2"></i>إجمالي الأخطاء</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>أنواع الأخطاء</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>عدد كل نوع</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>إحصائيات مفصلة</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أنواع الأخطاء -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="bi bi-4-circle text-primary me-2"></i>أنواع الأخطاء المدعومة</h5>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>نوع الخطأ</th>
+                                            <th>الوصف</th>
+                                            <th>مثال</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-danger">بيانات مفقودة</span></td>
+                                            <td>حقول مطلوبة فارغة</td>
+                                            <td>الاسم أو رقم الهوية فارغ</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-warning">ولي أمر غير موجود</span></td>
+                                            <td>رقم هوية ولي الأمر غير مسجل</td>
+                                            <td>رقم الهوية 123456789 غير موجود</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-info">حي غير موجود</span></td>
+                                            <td>اسم الحي غير مسجل في النظام</td>
+                                            <td>الحي 'الشجاعية' غير موجود</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-secondary">جنس غير صحيح</span></td>
+                                            <td>قيمة غير صحيحة للجنس</td>
+                                            <td>يجب أن يكون 'ذكر' أو 'أنثى'</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-primary">تاريخ ميلاد غير صحيح</span></td>
+                                            <td>تنسيق تاريخ خاطئ</td>
+                                            <td>تاريخ الميلاد غير صحيح</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-success">حي مكرر</span></td>
+                                            <td>محاولة إضافة حي موجود</td>
+                                            <td>الحي 'الرمال' موجود مسبقاً</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-dark">زوجة مكررة</span></td>
+                                            <td>محاولة إضافة زوجة موجودة</td>
+                                            <td>زوجة برقم الهوية موجودة مسبقاً</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-danger">خطأ عام</span></td>
+                                            <td>أخطاء أخرى غير متوقعة</td>
+                                            <td>خطأ في قاعدة البيانات</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- نصائح -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5><i class="bi bi-lightbulb text-warning me-2"></i>نصائح مهمة</h5>
+                            
+                            <div class="alert alert-warning">
+                                <ul class="mb-0">
+                                    <li><strong>احفظ ملف الأخطاء فوراً:</strong> يتم حذف الأخطاء من الذاكرة بعد تحميل الملف</li>
+                                    <li><strong>أصلح الأخطاء تدريجياً:</strong> ابدأ بالأخطاء الأساسية مثل البيانات المفقودة</li>
+                                    <li><strong>تحقق من النماذج:</strong> استخدم النماذج المتوفرة لضمان التنسيق الصحيح</li>
+                                    <li><strong>أرقام الهوية كنص:</strong> تأكد من تنسيق أرقام الهوية كنص لتجنب مشاكل .0</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'basic_data:basic_data_home' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-2"></i>العودة للصفحة الرئيسية
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

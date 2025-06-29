@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار نظام التنسيق الديناميكي</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .test-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .test-table {
+            margin-top: 20px;
+        }
+        .btn-test {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- Header -->
+        <div class="test-header">
+            <h1><i class="bi bi-palette me-2"></i>اختبار نظام التنسيق الديناميكي المبسط</h1>
+            <p class="mb-0">اختبر جميع وظائف النظام الجديد</p>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="test-section">
+            <h3><i class="bi bi-play-circle me-2"></i>أوامر الاختبار</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <button class="btn btn-success btn-test w-100" onclick="runQuickTest()">
+                        <i class="bi bi-lightning me-1"></i>اختبار سريع
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-primary btn-test w-100" onclick="runFullTest()">
+                        <i class="bi bi-gear me-1"></i>اختبار شامل
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <button class="btn btn-info btn-test w-100" onclick="runDebug()">
+                        <i class="bi bi-bug me-1"></i>تشخيص
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-warning btn-test w-100" onclick="testModal()">
+                        <i class="bi bi-window me-1"></i>اختبار النافذة
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-danger btn-test w-100" onclick="reinitializeSystem()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>إعادة تهيئة
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="test-section">
+            <h3><i class="bi bi-terminal me-2"></i>نتائج الاختبار</h3>
+            <button class="btn btn-outline-secondary btn-sm" onclick="clearConsole()">
+                <i class="bi bi-trash me-1"></i>مسح
+            </button>
+            <div id="consoleOutput" class="console-output">
+                جاهز للاختبار... اضغط على أي زر أعلاه لبدء الاختبار.
+            </div>
+        </div>
+
+        <!-- Sample Table -->
+        <div class="test-section">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-table me-2"></i>جدول تجريبي</h5>
+                    <!-- سيتم إضافة زر التنسيق هنا تلقائياً -->
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive test-table">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>العمر</th>
+                                    <th>المدينة</th>
+                                    <th>المهنة</th>
+                                    <th>الراتب</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>أحمد محمد</td>
+                                    <td>28</td>
+                                    <td>الرياض</td>
+                                    <td>مطور برمجيات</td>
+                                    <td>8000 ريال</td>
+                                </tr>
+                                <tr>
+                                    <td>فاطمة علي</td>
+                                    <td>32</td>
+                                    <td>جدة</td>
+                                    <td>مصممة جرافيك</td>
+                                    <td>6500 ريال</td>
+                                </tr>
+                                <tr>
+                                    <td>محمد سالم</td>
+                                    <td>25</td>
+                                    <td>الدمام</td>
+                                    <td>محاسب</td>
+                                    <td>5500 ريال</td>
+                                </tr>
+                                <tr>
+                                    <td>نورا أحمد</td>
+                                    <td>29</td>
+                                    <td>مكة</td>
+                                    <td>طبيبة</td>
+                                    <td>12000 ريال</td>
+                                </tr>
+                                <tr>
+                                    <td>خالد عبدالله</td>
+                                    <td>35</td>
+                                    <td>المدينة</td>
+                                    <td>مهندس</td>
+                                    <td>9000 ريال</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="test-section">
+            <h3><i class="bi bi-info-circle me-2"></i>تعليمات الاختبار</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>🚀 للبدء السريع:</h5>
+                    <ol>
+                        <li>اضغط "اختبار سريع"</li>
+                        <li>راقب النتائج في منطقة الكونسول</li>
+                        <li>ابحث عن زر "تنسيق الجدول" 🎨</li>
+                        <li>جرب الوظائف المختلفة</li>
+                    </ol>
+                </div>
+                <div class="col-md-6">
+                    <h5>🔧 إذا واجهت مشاكل:</h5>
+                    <ol>
+                        <li>اضغط "تشخيص" لفحص النظام</li>
+                        <li>اضغط "إعادة تهيئة" لإعادة البدء</li>
+                        <li>تحقق من وجود أخطاء في الكونسول</li>
+                        <li>جرب إعادة تحميل الصفحة</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Dynamic Formatting System -->
+    <script src="/static/js/dynamic-formatting.js"></script>
+    <script src="/static/js/debug-formatter.js"></script>
+
+    <script>
+        // إعادة توجيه console.log لعرضه في الصفحة
+        const originalLog = console.log;
+        const consoleOutput = document.getElementById('consoleOutput');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const timestamp = new Date().toLocaleTimeString('ar-SA');
+            consoleOutput.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+
+        // دوال الاختبار
+        function runQuickTest() {
+            clearConsole();
+            console.log('🚀 بدء الاختبار السريع...');
+            if (typeof quickTest === 'function') {
+                quickTest();
+            } else {
+                console.log('❌ دالة quickTest غير متوفرة');
+                loadDebugScript();
+            }
+        }
+
+        function runFullTest() {
+            clearConsole();
+            console.log('🔧 بدء الاختبار الشامل...');
+            if (typeof fullTest === 'function') {
+                fullTest();
+            } else {
+                console.log('❌ دالة fullTest غير متوفرة');
+                loadDebugScript();
+            }
+        }
+
+        function runDebug() {
+            clearConsole();
+            console.log('🔍 بدء التشخيص...');
+            if (typeof debugFormatter === 'function') {
+                debugFormatter();
+            } else {
+                console.log('❌ دالة debugFormatter غير متوفرة');
+                loadDebugScript();
+            }
+        }
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '';
+        }
+
+        function loadDebugScript() {
+            console.log('🔄 محاولة تحميل ملف التشخيص...');
+            const script = document.createElement('script');
+            script.src = '/static/js/debug-formatter.js';
+            script.onload = () => {
+                console.log('✅ تم تحميل ملف التشخيص');
+            };
+            script.onerror = () => {
+                console.log('❌ فشل في تحميل ملف التشخيص');
+            };
+            document.head.appendChild(script);
+        }
+
+        // تشغيل تلقائي عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('🎉 مرحباً بك في اختبار نظام التنسيق الديناميكي!');
+                console.log('📝 اضغط على "اختبار سريع" للبدء');
+                
+                // فحص سريع
+                const tables = document.querySelectorAll('table');
+                console.log('📊 تم العثور على ' + tables.length + ' جدول');
+                
+                if (window.dynamicFormatter) {
+                    console.log('✅ النظام جاهز!');
+                } else {
+                    console.log('⏳ انتظار تحميل النظام...');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

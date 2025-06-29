@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}البحث المباشر في جداول المساعدات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-search me-2"></i>البحث المباشر في جداول المساعدات</h4>
+                <p class="text-muted mb-0">للمساعدة في تشخيص مشاكل عرض المساعدات</p>
+            </div>
+            <div class="card-body">
+                <form method="GET">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="q" class="form-label">ابحث بالاسم أو رقم الهوية:</label>
+                            <input type="text" name="q" id="q" class="form-control" 
+                                   value="{{ search_query }}" 
+                                   placeholder="مثال: أشرف جاد أو أسيل نمر أو رقم الهوية...">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-search me-1"></i>بحث
+                            </button>
+                            <a href="{% url 'basic_data:basic_data_home' %}" class="btn btn-secondary">
+                                العودة
+                            </a>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>ملاحظة:</strong> هذه الأداة تبحث مباشرة في جداول المساعدات (AidDistribution و AidBeneficiary) 
+                    للعثور على أي سجلات مرتبطة بالاسم أو رقم الهوية المحدد.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

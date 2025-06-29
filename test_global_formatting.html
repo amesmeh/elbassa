@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار نظام التنسيق الشامل</title>
+    
+    <!-- Bootstrap 5 RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Dynamic Formatting CSS -->
+    <link href="static/css/dynamic-formatting.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .test-section {
+            margin-bottom: 3rem;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2><i class="bi bi-gear me-2"></i>اختبار نظام التنسيق الديناميكي الشامل</h2>
+                <p class="mb-0">اختبار شامل لجميع أنواع الجداول في البرنامج</p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-success me-2" onclick="runGlobalTest()">
+                            <i class="bi bi-play-circle me-1"></i>اختبار شامل
+                        </button>
+                        <button class="btn btn-info me-2" onclick="checkAllTables()">
+                            <i class="bi bi-search me-1"></i>فحص الجداول
+                        </button>
+                        <button class="btn btn-warning" onclick="clearConsole()">
+                            <i class="bi bi-trash me-1"></i>مسح الكونسول
+                        </button>
+                    </div>
+                </div>
+                <div class="console-output mt-3" id="consoleOutput">
+                    <div>🎉 مرحباً بك في اختبار النظام الشامل!</div>
+                    <div>📊 سيتم اختبار جميع أنواع الجداول</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول البيانات الأساسية -->
+        <div class="test-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-database me-2"></i>جدول البيانات الأساسية - أولياء الأمور</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>اسم ولي الأمر</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الجوال</th>
+                                    <th>الحي</th>
+                                    <th>الحالة الاجتماعية</th>
+                                    <th>عدد أفراد العائلة</th>
+                                    <th>حالة الإقامة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>أحمد محمد الفلسطيني</strong><br><small>مهندس</small></td>
+                                    <td><span class="badge bg-secondary">123456789</span></td>
+                                    <td><i class="bi bi-phone me-1"></i>0599123456</td>
+                                    <td><span class="badge bg-info">الرمال</span></td>
+                                    <td><span class="badge bg-success">متزوج</span></td>
+                                    <td><span class="badge bg-primary fs-6">7</span><small class="text-muted d-block">5 أطفال + 1 زوجة</small></td>
+                                    <td><span class="badge bg-success">مقيم</span></td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>فاطمة أحمد</strong><br><small>معلمة</small></td>
+                                    <td><span class="badge bg-secondary">987654321</span></td>
+                                    <td><i class="bi bi-phone me-1"></i>0598765432</td>
+                                    <td><span class="badge bg-info">الشجاعية</span></td>
+                                    <td><span class="badge bg-dark">أرملة</span></td>
+                                    <td><span class="badge bg-primary fs-6">4</span><small class="text-muted d-block">3 أطفال</small></td>
+                                    <td><span class="badge bg-warning">نازحة</span><small class="text-muted d-block">من الشمال</small></td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول المساعدات -->
+        <div class="test-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-heart me-2"></i>جدول المساعدات والتوزيعات</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>نوع المساعدة</th>
+                                <th>المستفيد</th>
+                                <th>الكمية</th>
+                                <th>تاريخ التوزيع</th>
+                                <th>الحالة</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-success">مواد غذائية</span></td>
+                                <td>أحمد محمد الفلسطيني</td>
+                                <td>طرد كامل</td>
+                                <td>2024-01-15</td>
+                                <td><span class="badge bg-success">تم التوزيع</span></td>
+                                <td>عائلة من 7 أفراد</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">مساعدة نقدية</span></td>
+                                <td>فاطمة أحمد</td>
+                                <td>500 شيكل</td>
+                                <td>2024-01-20</td>
+                                <td><span class="badge bg-warning">قيد المراجعة</span></td>
+                                <td>أرملة شهيد</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">أدوية</span></td>
+                                <td>محمد علي</td>
+                                <td>علبة أنسولين</td>
+                                <td>2024-01-25</td>
+                                <td><span class="badge bg-success">تم التوزيع</span></td>
+                                <td>مريض سكري</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول الشهداء -->
+        <div class="test-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-star me-2"></i>جدول الشهداء</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>اسم الشهيد</th>
+                                    <th>العمر</th>
+                                    <th>تاريخ الاستشهاد</th>
+                                    <th>مكان الاستشهاد</th>
+                                    <th>سبب الاستشهاد</th>
+                                    <th>الحالة الاجتماعية</th>
+                                    <th>عدد الأطفال</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>خالد أحمد الشهيد</strong></td>
+                                    <td>35</td>
+                                    <td>2023-10-15</td>
+                                    <td>غزة</td>
+                                    <td>قصف جوي</td>
+                                    <td>متزوج</td>
+                                    <td>4</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>سارة محمد</strong></td>
+                                    <td>28</td>
+                                    <td>2023-11-02</td>
+                                    <td>رفح</td>
+                                    <td>قصف مدفعي</td>
+                                    <td>متزوجة</td>
+                                    <td>2</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول الإحصائيات -->
+        <div class="test-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-graph-up me-2"></i>جدول الإحصائيات</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>الفئة</th>
+                                <th>العدد الكلي</th>
+                                <th>المقيمون</th>
+                                <th>النازحون</th>
+                                <th>النسبة المئوية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>أولياء الأمور</td>
+                                <td class="text-center"><span class="badge bg-primary">1,250</span></td>
+                                <td class="text-center">800</td>
+                                <td class="text-center">450</td>
+                                <td class="text-center">100%</td>
+                            </tr>
+                            <tr>
+                                <td>الأطفال</td>
+                                <td class="text-center"><span class="badge bg-success">3,750</span></td>
+                                <td class="text-center">2,400</td>
+                                <td class="text-center">1,350</td>
+                                <td class="text-center">75%</td>
+                            </tr>
+                            <tr>
+                                <td>المستفيدون</td>
+                                <td class="text-center"><span class="badge bg-info">5,000</span></td>
+                                <td class="text-center">3,200</td>
+                                <td class="text-center">1,800</td>
+                                <td class="text-center">80%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول بسيط للاختبار -->
+        <div class="test-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-table me-2"></i>جدول بسيط للاختبار</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>العنصر</th>
+                                <th>القيمة</th>
+                                <th>الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>البند الأول</td>
+                                <td>100</td>
+                                <td>وصف البند الأول</td>
+                            </tr>
+                            <tr>
+                                <td>البند الثاني</td>
+                                <td>200</td>
+                                <td>وصف البند الثاني</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/dynamic-formatting.js"></script>
+    <script src="static/js/debug-formatter.js"></script>
+
+    <script>
+        function logToConsole(message, type = 'info') {
+            const console = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString('ar-EG');
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            const div = document.createElement('div');
+            div.innerHTML = `[${timestamp}] ${icon} ${message}`;
+            console.appendChild(div);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function runGlobalTest() {
+            logToConsole('🚀 بدء الاختبار الشامل للنظام...', 'info');
+            
+            // فحص الجداول
+            const tables = document.querySelectorAll('table');
+            logToConsole(`📊 تم العثور على ${tables.length} جدول في الصفحة`, 'info');
+            
+            // فحص أزرار التنسيق
+            setTimeout(() => {
+                const formatButtons = document.querySelectorAll('[id^="formatButton-"]');
+                logToConsole(`🔘 تم إنشاء ${formatButtons.length} زر تنسيق`, 'info');
+                
+                if (formatButtons.length === tables.length) {
+                    logToConsole('✅ جميع الجداول لديها أزرار تنسيق!', 'success');
+                    logToConsole('🎯 النظام يعمل بشكل مثالي على جميع الجداول', 'success');
+                } else {
+                    logToConsole(`⚠️ بعض الجداول لا تحتوي على أزرار تنسيق`, 'warning');
+                    logToConsole(`📈 معدل النجاح: ${Math.round((formatButtons.length / tables.length) * 100)}%`, 'info');
+                }
+                
+                // اختبار فتح النوافذ
+                testModalFunctionality();
+            }, 1000);
+        }
+
+        function testModalFunctionality() {
+            logToConsole('🔍 اختبار وظائف النوافذ...', 'info');
+            
+            const formatButtons = document.querySelectorAll('[id^="formatButton-"]');
+            if (formatButtons.length > 0) {
+                logToConsole('💡 جرب الضغط على أي زر "تنسيق الجدول" لاختبار النافذة', 'info');
+                logToConsole('🎨 ستجد تحكم عام وفردي لكل عمود', 'info');
+                logToConsole('✨ جميع الميزات متاحة: حجم الخط، عرض الأعمدة، المحاذاة', 'success');
+            }
+        }
+
+        function checkAllTables() {
+            logToConsole('🔍 فحص تفصيلي لجميع الجداول...', 'info');
+            
+            const tables = document.querySelectorAll('table');
+            tables.forEach((table, index) => {
+                const headers = table.querySelectorAll('thead th');
+                const rows = table.querySelectorAll('tbody tr');
+                const formatButton = document.getElementById(`formatButton-${index}`);
+                
+                logToConsole(`📋 الجدول ${index + 1}: ${headers.length} أعمدة، ${rows.length} صفوف، زر التنسيق: ${formatButton ? '✅' : '❌'}`, 'info');
+            });
+        }
+
+        function clearConsole() {
+            const console = document.getElementById('consoleOutput');
+            console.innerHTML = '<div>🧹 تم مسح الكونسول</div>';
+        }
+
+        // تشغيل تلقائي عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                logToConsole('🎉 تم تحميل صفحة الاختبار الشامل!', 'success');
+                logToConsole('📝 اضغط على "اختبار شامل" للبدء', 'info');
+            }, 1500);
+        });
+    </script>
+</body>
+</html> 

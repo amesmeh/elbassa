@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار نظام التنسيق البسيط</title>
+    
+    <!-- Bootstrap 5 RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .test-buttons {
+            margin-bottom: 20px;
+        }
+        .test-buttons .btn {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3><i class="bi bi-gear me-2"></i>اختبار نظام التنسيق البسيط</h3>
+            </div>
+            <div class="card-body">
+                <!-- أزرار الاختبار -->
+                <div class="test-buttons">
+                    <button class="btn btn-success" onclick="runQuickTest()">
+                        <i class="bi bi-play-circle me-1"></i>اختبار سريع
+                    </button>
+                    <button class="btn btn-info" onclick="runDebug()">
+                        <i class="bi bi-bug me-1"></i>تشخيص
+                    </button>
+                    <button class="btn btn-primary" onclick="testNewFeatures()">
+                        <i class="bi bi-stars me-1"></i>اختبار الميزات الجديدة
+                    </button>
+                    <button class="btn btn-warning" onclick="reinitializeSystem()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>إعادة تهيئة
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearConsole()">
+                        <i class="bi bi-trash me-1"></i>مسح الكونسول
+                    </button>
+                </div>
+
+                <!-- منطقة الكونسول -->
+                <div class="console-output" id="consoleOutput">
+                    <div>🎉 مرحباً بك في اختبار نظام التنسيق المحدث!</div>
+                    <div>📝 اضغط على "اختبار سريع" للبدء</div>
+                    <div>✨ الميزات الجديدة: التحكم في حجم الخط وعرض الأعمدة</div>
+                </div>
+
+                <!-- الجدول التجريبي -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-table me-2"></i>جدول تجريبي</h5>
+                        <!-- سيتم إضافة زر التنسيق هنا تلقائياً -->
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>العمر</th>
+                                        <th>المدينة</th>
+                                        <th>المهنة</th>
+                                        <th>الراتب</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>أحمد محمد</td>
+                                        <td>28</td>
+                                        <td>غزة</td>
+                                        <td>مطور</td>
+                                        <td>3000</td>
+                                        <td><span class="badge bg-success">نشط</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>فاطمة أحمد</td>
+                                        <td>25</td>
+                                        <td>رفح</td>
+                                        <td>مصممة</td>
+                                        <td>2500</td>
+                                        <td><span class="badge bg-success">نشط</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>محمد علي</td>
+                                        <td>32</td>
+                                        <td>خان يونس</td>
+                                        <td>مدير</td>
+                                        <td>4000</td>
+                                        <td><span class="badge bg-warning">معلق</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>سارة خالد</td>
+                                        <td>29</td>
+                                        <td>دير البلح</td>
+                                        <td>محاسبة</td>
+                                        <td>2800</td>
+                                        <td><span class="badge bg-success">نشط</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>يوسف إبراهيم</td>
+                                        <td>35</td>
+                                        <td>جباليا</td>
+                                        <td>مهندس</td>
+                                        <td>3500</td>
+                                        <td><span class="badge bg-danger">غير نشط</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- جدول ثاني للاختبار -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="bi bi-table me-2"></i>جدول ثاني للاختبار</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>المنتج</th>
+                                    <th>السعر</th>
+                                    <th>الكمية</th>
+                                    <th>المجموع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>لابتوب</td>
+                                    <td>1200$</td>
+                                    <td>5</td>
+                                    <td>6000$</td>
+                                </tr>
+                                <tr>
+                                    <td>ماوس</td>
+                                    <td>25$</td>
+                                    <td>20</td>
+                                    <td>500$</td>
+                                </tr>
+                                <tr>
+                                    <td>لوحة مفاتيح</td>
+                                    <td>50$</td>
+                                    <td>15</td>
+                                    <td>750$</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- نظام التنسيق -->
+    <script src="static/js/dynamic-formatting.js"></script>
+    <script src="static/js/debug-formatter.js"></script>
+
+    <script>
+        // دوال الاختبار
+        function logToConsole(message, type = 'info') {
+            const console = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString('ar-EG');
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            const div = document.createElement('div');
+            div.innerHTML = `[${timestamp}] ${icon} ${message}`;
+            console.appendChild(div);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function runQuickTest() {
+            logToConsole('🚀 بدء الاختبار السريع...', 'info');
+            
+            // فحص الجداول
+            const tables = document.querySelectorAll('table');
+            logToConsole('📊 تم العثور على ' + tables.length + ' جدول', 'info');
+            
+            // فحص أزرار التنسيق
+            const formatButtons = document.querySelectorAll('[id^="formatButton-"]');
+            logToConsole('🔘 تم العثور على ' + formatButtons.length + ' زر تنسيق', 'info');
+            
+            if (formatButtons.length > 0) {
+                logToConsole('✅ النظام يعمل بشكل صحيح!', 'success');
+                logToConsole('💡 جرب الضغط على زر "تنسيق الجدول"', 'info');
+            } else {
+                logToConsole('❌ لم يتم العثور على أزرار التنسيق', 'error');
+                logToConsole('🔄 محاولة إعادة التهيئة...', 'warning');
+                
+                if (window.reinitializeFormatter) {
+                    window.reinitializeFormatter();
+                    setTimeout(function() {
+                        const newButtons = document.querySelectorAll('[id^="formatButton-"]');
+                        if (newButtons.length > 0) {
+                            logToConsole('✅ تم إصلاح المشكلة!', 'success');
+                        } else {
+                            logToConsole('❌ المشكلة لا تزال موجودة', 'error');
+                        }
+                    }, 1000);
+                }
+            }
+        }
+
+        function runDebug() {
+            logToConsole('🔍 تشغيل التشخيص...', 'info');
+            
+            if (window.debugFormatter) {
+                const result = window.debugFormatter();
+                logToConsole('Bootstrap: ' + (result.bootstrap ? '✅' : '❌'), 'info');
+                logToConsole('الجداول: ' + result.tables, 'info');
+                logToConsole('أزرار التنسيق: ' + result.formatButtons, 'info');
+            } else {
+                logToConsole('❌ دالة التشخيص غير متوفرة', 'error');
+            }
+        }
+
+        function reinitializeSystem() {
+            logToConsole('🔄 إعادة تهيئة النظام...', 'warning');
+            
+            if (window.reinitializeFormatter) {
+                window.reinitializeFormatter();
+                logToConsole('✅ تم إعادة تهيئة النظام', 'success');
+            } else {
+                logToConsole('❌ دالة إعادة التهيئة غير متوفرة', 'error');
+            }
+        }
+
+        function clearConsole() {
+            const console = document.getElementById('consoleOutput');
+            console.innerHTML = '<div>🧹 تم مسح الكونسول</div>';
+        }
+
+        function testNewFeatures() {
+            logToConsole('✨ اختبار الميزات الجديدة...', 'info');
+            
+            // فحص وجود أزرار التنسيق
+            const formatButtons = document.querySelectorAll('[id^="formatButton-"]');
+            if (formatButtons.length === 0) {
+                logToConsole('❌ لا توجد أزرار تنسيق - تشغيل إعادة التهيئة...', 'warning');
+                reinitializeSystem();
+                setTimeout(function() {
+                    testNewFeatures();
+                }, 1000);
+                return;
+            }
+            
+            logToConsole('🔘 فتح نافذة التنسيق للجدول الأول...', 'info');
+            
+            // فتح نافذة التنسيق للجدول الأول
+            const firstButton = formatButtons[0];
+            firstButton.click();
+            
+            setTimeout(function() {
+                // فحص عناصر التحكم العامة
+                const globalFontSize = document.querySelector('[id^="globalFontSize-"]');
+                const globalColumnWidth = document.querySelector('[id^="globalColumnWidth-"]');
+                const globalFontWeight = document.querySelector('[id^="globalFontWeight-"]');
+                const globalTextAlign = document.querySelector('[id^="globalTextAlign-"]');
+                
+                logToConsole('🔤 التحكم في حجم الخط العام: ' + (globalFontSize ? '✅' : '❌'), 'info');
+                logToConsole('📏 التحكم في عرض الأعمدة العام: ' + (globalColumnWidth ? '✅' : '❌'), 'info');
+                logToConsole('💪 التحكم في وزن الخط العام: ' + (globalFontWeight ? '✅' : '❌'), 'info');
+                logToConsole('📐 التحكم في محاذاة النص العام: ' + (globalTextAlign ? '✅' : '❌'), 'info');
+                
+                // فحص التحكم الفردي بالأعمدة
+                const individualControl = document.querySelector('[id^="individualColumnsControl-"]');
+                const columnCards = document.querySelectorAll('.column-control-card');
+                
+                logToConsole('🎯 التحكم الفردي بالأعمدة: ' + (individualControl ? '✅' : '❌'), 'info');
+                logToConsole('📋 عدد بطاقات الأعمدة: ' + columnCards.length, 'info');
+                
+                if (columnCards.length > 0) {
+                    logToConsole('🎨 تم العثور على ' + columnCards.length + ' بطاقة تحكم فردية', 'success');
+                    logToConsole('🔧 كل عمود له تحكم منفصل في:', 'info');
+                    logToConsole('   • إظهار/إخفاء العمود', 'info');
+                    logToConsole('   • حجم الخط الخاص', 'info');
+                    logToConsole('   • عرض العمود الخاص', 'info');
+                    logToConsole('   • وزن الخط ومحاذاة النص', 'info');
+                }
+                
+                if (globalFontSize && globalColumnWidth && columnCards.length > 0) {
+                    logToConsole('🎯 جميع الميزات تعمل بشكل مثالي!', 'success');
+                    logToConsole('💡 جرب التحكم العام والفردي لرؤية الفرق', 'info');
+                    logToConsole('🎨 كل عمود يمكن تخصيصه بشكل منفصل', 'success');
+                } else {
+                    logToConsole('❌ بعض الميزات مفقودة', 'error');
+                }
+            }, 1000);
+        }
+
+        // تشغيل تلقائي عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                logToConsole('🎉 تم تحميل الصفحة بنجاح!', 'success');
+                logToConsole('📝 اضغط على "اختبار سريع" للبدء', 'info');
+            }, 1000);
+        });
+
+        // إعادة توجيه console.log للكونسول المرئي
+        const originalLog = console.log;
+        console.log = function() {
+            originalLog.apply(console, arguments);
+            const args = Array.prototype.slice.call(arguments);
+            logToConsole(args.join(' '), 'info');
+        };
+    </script>
+</body>
+</html> 

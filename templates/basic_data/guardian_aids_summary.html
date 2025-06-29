@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ guardian.name }} - ملخص المساعدات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-gift me-2"></i>ملخص المساعدات - {{ guardian.name }}</h4>
+                <div>
+                    <a href="{% url 'basic_data:guardian_detail' guardian.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-right me-1"></i>العودة لتفاصيل ولي الأمر
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if aids_available %}
+                    {% if all_aids %}
+                        <!-- قائمة المساعدات -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>نوع المساعدة</th>
+                                        <th>فئة المساعدة</th>
+                                        <th>تاريخ الاستفادة</th>
+                                        <th>المصدر</th>
+                                        <th>الحالة</th>
+                                        <th>ملاحظات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for aid in all_aids %}
+                                        <tr>
+                                            <td><strong>{{ aid.aid_type }}</strong></td>
+                                            <td>
+                                                <span class="badge bg-info">{{ aid.aid_category }}</span>
+                                            </td>
+                                            <td>
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ aid.date|date:"d/m/Y" }}
+                                            </td>
+                                            <td>
+                                                {% if aid.type == 'distribution' %}
+                                                    <span class="badge bg-warning">بيانات التوزيع</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">قائمة المستفيدين</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if aid.is_transferred %}
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle me-1"></i>مرحل
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="bi bi-clock me-1"></i>غير مرحل
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if aid.notes %}
+                                                    <small class="text-muted">{{ aid.notes }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-gift" style="font-size: 4rem; color: #ccc;"></i>
+                            <h5 class="mt-3 text-muted">لا توجد مساعدات مسجلة</h5>
+                            <p class="text-muted">لم يتلق هذا الشخص أي مساعدات حتى الآن</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>تطبيق المساعدات غير متوفر</strong><br>
+                        لا يمكن عرض بيانات المساعدات لأن تطبيق المساعدات غير مثبت أو غير مفعل.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- إحصائيات المساعدات -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart me-2"></i>إحصائيات المساعدات</h5>
+            </div>
+            <div class="card-body">
+                {% if aids_available %}
+                    <div class="stats-card mb-3">
+                        <h3 class="text-primary">{{ total_aids_count }}</h3>
+                        <p><i class="bi bi-gift me-2"></i>إجمالي المساعدات</p>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="text-center p-2 border rounded">
+                                <h5 class="text-warning">{{ distributions_count }}</h5>
+                                <small>توزيعات</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-2 border rounded">
+                                <h5 class="text-success">{{ beneficiaries_count }}</h5>
+                                <small>مستفيد</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if last_aid_date %}
+                        <hr>
+                        <div class="text-center">
+                            <h6 class="text-muted mb-2">آخر مساعدة:</h6>
+                            <span class="badge bg-primary fs-6">
+                                {{ last_aid_date|date:"d/m/Y" }}
+                            </span>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
+                        <p class="mt-2">البيانات غير متوفرة</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- إحصائيات حسب نوع المساعدة -->
+        {% if aids_available and aid_types_list %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="bi bi-pie-chart me-2"></i>حسب نوع المساعدة</h6>
+                </div>
+                <div class="card-body">
+                    {% for aid_type in aid_types_list %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ aid_type.name }}</strong>
+                                <br><small class="text-muted">{{ aid_type.category }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">{{ aid_type.count }}</span>
+                                <br><small class="text-muted">{{ aid_type.last_date|date:"d/m/Y" }}</small>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr class="my-2">{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- معلومات ولي الأمر -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-person me-2"></i>معلومات ولي الأمر</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>الاسم:</strong> {{ guardian.name }}</p>
+                <p><strong>رقم الهوية:</strong> {{ guardian.national_id }}</p>
+                <p><strong>رقم الجوال:</strong> {{ guardian.phone_number }}</p>
+                {% if guardian.district %}
+                    <p><strong>الحي:</strong> {{ guardian.district.name }}</p>
+                {% endif %}
+                <p><strong>عدد أفراد العائلة:</strong> {{ guardian.family_members_count }}</p>
+            </div>
+        </div>
+        
+        <!-- روابط سريعة -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-link me-2"></i>روابط سريعة</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'basic_data:guardian_detail' guardian.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person me-1"></i>تفاصيل ولي الأمر
+                    </a>
+                    {% if aids_available %}
+                        <a href="{% url 'aids:distributions_list' %}?search={{ guardian.national_id }}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-box-seam me-1"></i>عرض التوزيعات
+                        </a>
+                        <a href="{% url 'aids:beneficiaries_list' %}?search={{ guardian.national_id }}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-people me-1"></i>عرض المستفيدين
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-list me-1"></i>قائمة أولياء الأمور
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- معلومات التشخيص (للمشرفين فقط) -->
+        {% if user.is_staff and debug_info %}
+            <div class="card mt-3 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6><i class="bi bi-bug me-2"></i>معلومات التشخيص</h6>
+                </div>
+                <div class="card-body">
+                    <small>
+                        <p><strong>معرف ولي الأمر:</strong> {{ debug_info.guardian_pk }}</p>
+                        <p><strong>اسم ولي الأمر:</strong> {{ debug_info.guardian_name }}</p>
+                        <p><strong>رقم الهوية:</strong> {{ debug_info.guardian_national_id }}</p>
+                        
+                        <hr>
+                        <p><strong>حالة التطبيقات:</strong> 
+                            {% if debug_info.aids_available %}
+                                <span class="badge bg-success">متوفر</span>
+                            {% else %}
+                                <span class="badge bg-danger">غير متوفر</span>
+                            {% endif %}
+                        </p>
+                        
+                        {% if debug_info.error_message %}
+                            <p><strong>رسالة الخطأ:</strong> 
+                                <span class="text-danger">{{ debug_info.error_message }}</span>
+                            </p>
+                        {% endif %}
+                        
+                        {% if debug_info.aids_available %}
+                            <hr>
+                            <p><strong>نتائج البحث المختلفة:</strong></p>
+                            <ul class="list-unstyled mb-0">
+                                <li>• بالـ PK: {{ debug_info.distributions_by_pk_count }} توزيع + {{ debug_info.beneficiaries_by_pk_count }} مستفيد</li>
+                                <li>• بالكائن: {{ debug_info.distributions_by_obj_count }} توزيع + {{ debug_info.beneficiaries_by_obj_count }} مستفيد</li>
+                                <li>• بالاسم/الهوية: {{ debug_info.distributions_by_name_count }} توزيع + {{ debug_info.beneficiaries_by_name_count }} مستفيد</li>
+                            </ul>
+                            
+                            {% if debug_info.query_results %}
+                                <hr>
+                                <p><strong>المساعدات الموجودة بالاسم/الهوية:</strong></p>
+                                {% for result in debug_info.query_results %}
+                                    <div class="border rounded p-2 mb-2 {% if result.matches_current_guardian %}bg-success text-white{% else %}bg-warning{% endif %}">
+                                        <small>
+                                            <strong>{{ result.aid_type }}</strong> ({{ result.type }})<br>
+                                            ولي الأمر: {{ result.guardian_in_record.name }} ({{ result.guardian_in_record.pk }})<br>
+                                            رقم الهوية: {{ result.guardian_in_record.national_id }}<br>
+                                            التاريخ: {{ result.date|date:"d/m/Y" }}<br>
+                                            {% if result.matches_current_guardian %}
+                                                <span class="badge bg-light text-dark">مطابق</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">غير مطابق</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

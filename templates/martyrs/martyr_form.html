@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - نظام المساعدات{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    .form-section {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+    }
+    .section-title {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-star text-warning"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- قسم بيانات الشهيد -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-person-fill"></i>
+                                بيانات الشهيد
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label required">
+                                        {{ form.name.label }}
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.name.help_text %}
+                                        <div class="form-text">{{ form.name.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.national_id.id_for_label }}" class="form-label required">
+                                        {{ form.national_id.label }}
+                                    </label>
+                                    {{ form.national_id }}
+                                    {% if form.national_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.national_id.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.national_id.help_text %}
+                                        <div class="form-text">{{ form.national_id.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.martyrdom_date.id_for_label }}" class="form-label">
+                                        {{ form.martyrdom_date.label }}
+                                    </label>
+                                    {{ form.martyrdom_date }}
+                                    {% if form.martyrdom_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.martyrdom_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قسم بيانات الوكيل -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-person-badge"></i>
+                                بيانات الوكيل
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.agent_name.id_for_label }}" class="form-label">
+                                        {{ form.agent_name.label }}
+                                    </label>
+                                    {{ form.agent_name }}
+                                    {% if form.agent_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.agent_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.agent_name.help_text %}
+                                        <div class="form-text">{{ form.agent_name.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.agent_national_id.id_for_label }}" class="form-label">
+                                        {{ form.agent_national_id.label }}
+                                    </label>
+                                    {{ form.agent_national_id }}
+                                    {% if form.agent_national_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.agent_national_id.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.agent_national_id.help_text %}
+                                        <div class="form-text">{{ form.agent_national_id.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.agent_phone.id_for_label }}" class="form-label">
+                                        {{ form.agent_phone.label }}
+                                    </label>
+                                    {{ form.agent_phone }}
+                                    {% if form.agent_phone.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.agent_phone.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.agent_phone.help_text %}
+                                        <div class="form-text">{{ form.agent_phone.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.relationship_to_martyr.id_for_label }}" class="form-label">
+                                        {{ form.relationship_to_martyr.label }}
+                                    </label>
+                                    {{ form.relationship_to_martyr }}
+                                    {% if form.relationship_to_martyr.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.relationship_to_martyr.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if form.relationship_to_martyr.help_text %}
+                                        <div class="form-text">{{ form.relationship_to_martyr.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قسم الملاحظات -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-chat-text"></i>
+                                معلومات إضافية
+                            </h5>
+                            <div class="mb-3">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                    {{ form.notes.label }}
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.notes.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if form.notes.help_text %}
+                                    <div class="form-text">{{ form.notes.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- أزرار التحكم -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a href="{% url 'martyrs:martyrs_list' %}" class="btn btn-secondary">
+                                            <i class="bi bi-arrow-left"></i> إلغاء
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle"></i>
+                                            {% if martyr %}تحديث البيانات{% else %}إضافة الشهيد{% endif %}
+                                        </button>
+                                        {% if martyr %}
+                                            <a href="{% url 'martyrs:martyr_detail' martyr.pk %}" class="btn btn-info">
+                                                <i class="bi bi-eye"></i> عرض التفاصيل
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة التحقق من صحة النموذج
+    const form = document.querySelector('form');
+    const nationalIdField = document.getElementById('{{ form.national_id.id_for_label }}');
+    const agentNationalIdField = document.getElementById('{{ form.agent_national_id.id_for_label }}');
+    
+    // التحقق من رقم الهوية
+    function validateNationalId(field) {
+        const value = field.value;
+        const regex = /^\d{9}$/;
+        
+        if (value && !regex.test(value)) {
+            field.classList.add('is-invalid');
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            return true;
+        }
+    }
+    
+    if (nationalIdField) {
+        nationalIdField.addEventListener('input', function() {
+            validateNationalId(this);
+        });
+    }
+    
+    if (agentNationalIdField) {
+        agentNationalIdField.addEventListener('input', function() {
+            validateNationalId(this);
+        });
+    }
+    
+    // منع إرسال النموذج إذا كانت البيانات غير صحيحة
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        if (nationalIdField && !validateNationalId(nationalIdField)) {
+            isValid = false;
+        }
+        
+        if (agentNationalIdField && !validateNationalId(agentNationalIdField)) {
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('يرجى التأكد من صحة البيانات المدخلة');
+        }
+    });
+});
+</script>
+{% endblock %} 

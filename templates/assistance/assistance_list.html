@@ -1,0 +1,1154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .search-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .table {
+        table-layout: fixed !important;
+        width: 100% !important;
+    }
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        white-space: nowrap;
+    }
+    .table td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .assistance-type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+    .btn-group-actions {
+        white-space: nowrap;
+    }
+    .btn-action {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.9rem;
+        margin: 0 1px;
+        border-radius: 6px;
+    }
+    .quantity-cell {
+        font-weight: 600;
+        color: #28a745;
+    }
+    .pagination-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+    .editable {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .editable:hover {
+        background-color: #e3f2fd !important;
+    }
+    .editing {
+        background-color: #fff3cd !important;
+    }
+    .edit-form {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .edit-input {
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+    .edit-select {
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+    .edit-buttons {
+        display: flex;
+        gap: 3px;
+    }
+    .edit-btn {
+        padding: 2px 6px;
+        font-size: 0.7rem;
+        border-radius: 3px;
+    }
+    
+    /* العنوان البسيط */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .page-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .page-header p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    /* تحسين عرض عمود المسلسل */
+    .table th:nth-child(2), .table td:nth-child(2) { 
+        text-align: center !important;
+        padding: 8px 4px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* على الأجهزة المحمولة، إعادة تحديد العرض */
+    @media (max-width: 768px) {
+        .table th, .table td {
+            width: auto !important;
+        }
+        .btn-action {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-hands-helping"></i>
+            برنامج المساعدات - قطاع غزة
+        </h1>
+        <p>نظام إدارة وتنظيم المساعدات الإنسانية</p>
+    </div>
+
+    <!-- Action Button -->
+    {% comment %} إخفاء الأزرار عن المندوبين والمراقبين - إبقاء المشرفين فقط {% endcomment %}
+    {% if user.is_superuser %}
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <a href="{% url 'assistance:assistance_create' %}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-plus"></i> إضافة مساعدة جديدة
+            </a>
+            
+            <!-- أزرار Excel -->
+            <div class="btn-group me-2" role="group">
+                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-excel me-1"></i>Excel
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'assistance:export_assistance_excel' %}?{% for key, value in request.GET.items %}{{ key }}={{ value }}&{% endfor %}">
+                            <i class="fas fa-download me-2"></i>تصدير Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'assistance:create_assistance_template' %}">
+                            <i class="fas fa-file-download me-2"></i>تحميل النموذج
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'assistance:import_assistance_excel' %}">
+                            <i class="fas fa-file-upload me-2"></i>استيراد من Excel
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- زر تحديث التواريخ -->
+            {% if total_records_in_db > 0 %}
+            <button type="button" class="btn btn-warning me-2" onclick="showBulkUpdateDateModal()" title="تحديث مجموعة من التواريخ دفعة واحدة">
+                <i class="fas fa-calendar-alt me-1"></i>تحديث التواريخ
+            </button>
+            {% endif %}
+            
+            <!-- أزرار الحذف -->
+            {% if page_obj.object_list %}
+            <div class="btn-group me-2" role="group">
+                <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-trash me-1"></i>حذف
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item" type="button" onclick="deleteSelected()">
+                            <i class="fas fa-trash me-2"></i>حذف المحدد
+                        </button>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <button class="dropdown-item text-danger" type="button" onclick="deleteAll()">
+                            <i class="fas fa-trash-alt me-2"></i>حذف الجميع
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ total_records }}</h4>
+                <small>إجمالي السجلات</small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ distribution_dates }}</h4>
+                <small>عدد مرات التوزيع</small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ unique_beneficiaries }}</h4>
+                <small>المستفيدين الفريدين</small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ assistance_types_count }}</h4>
+                <small>أنواع المساعدات</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="search-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                {{ search_form.search_query }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.assistance_type }}
+                <datalist id="assistance-types-list">
+                    {% for assistance_type in assistance_types %}
+                        <option value="{{ assistance_type }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-md-2">
+                {{ search_form.date_from }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.date_to }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.district }}
+                <datalist id="districts-list">
+                    {% for district in districts %}
+                        <option value="{{ district }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+        
+        {% if request.GET %}
+        <div class="mt-3">
+            <a href="{% url 'assistance:assistance_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-times"></i> إلغاء البحث
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-container">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 2%;">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th style="width: 3%;">#</th>
+                        <th style="width: 25%;">اسم المستفيد</th>
+                        <th style="width: 12%;">رقم الهوية</th>
+                        <th style="width: 19%;">نوع المساعدة</th>
+                        <th style="width: 12%;">الكمية</th>
+                        <th style="width: 12%;">التاريخ</th>
+                        <th style="width: 9%;">الحي</th>
+                        <th style="width: 20%;">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assistance in page_obj.object_list %}
+                    <tr id="assistance-row-{{ assistance.pk }}">
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input assistance-checkbox" value="{{ assistance.pk }}">
+                        </td>
+                        <td class="text-center">{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+                        
+                        <!-- اسم المستفيد -->
+                        <td class="editable" data-field="beneficiary_name" data-pk="{{ assistance.pk }}">
+                            <strong style="font-size: 1.1em;">{{ assistance.beneficiary_name }}</strong>
+                            {% if assistance.family_members_count %}
+                                <br><small class="text-muted">{{ assistance.family_members_count }} أفراد</small>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- رقم الهوية وحالة الإقامة -->
+                        <td class="editable" data-field="national_id" data-pk="{{ assistance.pk }}">
+                            <div class="d-flex flex-column">
+                                <code style="font-size: 1.1em;">{{ assistance.national_id }}</code>
+                                {% if assistance.residence_status %}
+                                    <small class="text-muted">
+                                        {% if assistance.residence_status == 'نازح' %}
+                                            <i class="fas fa-people-carry text-warning me-1"></i>
+                                        {% else %}
+                                            <i class="fas fa-home text-success me-1"></i>
+                                        {% endif %}
+                                        {{ assistance.residence_status }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <!-- نوع المساعدة -->
+                        <td class="editable" data-field="assistance_type" data-pk="{{ assistance.pk }}">
+                            <span class="badge assistance-type-badge bg-primary">{{ assistance.assistance_type }}</span>
+                        </td>
+                        
+                        <!-- الكمية -->
+                        <td class="editable quantity-cell" data-field="quantity" data-pk="{{ assistance.pk }}">{{ assistance.quantity }}</td>
+                        
+                        <!-- تاريخ المساعدة -->
+                        <td class="editable" data-field="assistance_date" data-pk="{{ assistance.pk }}">{{ assistance.assistance_date|date:"Y-m-d" }}</td>
+                        
+                        <!-- الحي -->
+                        <td class="editable" data-field="district_name" data-pk="{{ assistance.pk }}">{{ assistance.district_name|default:"-" }}</td>
+
+                        <!-- الإجراءات -->
+                        <td class="btn-group-actions">
+                            <a href="{% url 'assistance:assistance_detail' assistance.pk %}" class="btn btn-info btn-action" title="عرض التفاصيل">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if can_edit %}
+                            <a href="{% url 'assistance:assistance_edit' assistance.pk %}" class="btn btn-primary btn-action" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'assistance:assistance_create' %}?copy={{ assistance.pk }}" class="btn btn-secondary btn-action" title="تكرار">
+                                <i class="fas fa-copy"></i>
+                            </a>
+                            {% endif %}
+                            {% if can_delete %}
+                            <button onclick="deleteAssistance({{ assistance.pk }})" class="btn btn-danger btn-action" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5">
+                            <h4>لا توجد مساعدات لعرضها</h4>
+                            <p>حاول تعديل فلاتر البحث أو قم بإضافة مساعدة جديدة.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-inbox fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">لا توجد مساعدات</h4>
+            <p class="text-muted">لم يتم العثور على أي مساعدات تطابق معايير البحث.</p>
+            {% if user.is_superuser %}
+            <a href="{% url 'assistance:assistance_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> إضافة أول مساعدة
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-container">
+        <nav aria-label="تنقل بين الصفحات">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                            <i class="fas fa-chevron-right"></i> السابق
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                            التالي <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <div class="text-center mt-3 text-muted small">
+            عرض {{ page_obj.start_index }} - {{ page_obj.end_index }} من أصل {{ page_obj.paginator.count }} سجل
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- مودال تأكيد حذف المحدد -->
+<div class="modal fade" id="deleteSelectedModal" tabindex="-1" aria-labelledby="deleteSelectedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSelectedModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>تأكيد حذف المحدد
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من حذف العناصر المحددة؟</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    سيتم حذف <span id="selectedCount">0</span> عنصر/عناصر نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteSelected()">
+                    <i class="fas fa-trash me-2"></i>حذف المحدد
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تحديث التواريخ الجماعي -->
+<div class="modal fade" id="bulkUpdateDateModal" tabindex="-1" aria-labelledby="bulkUpdateDateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkUpdateDateModalLabel">
+                    <i class="fas fa-calendar-alt text-warning me-2"></i>تحديث التواريخ الجماعي
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bulkUpdateDateForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="bulkOldDate" class="form-label">
+                                <i class="fas fa-clock me-1"></i>التاريخ القديم (المراد تغييره) <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="bulkOldDate" name="old_date" required>
+                            <small class="form-text text-muted">جميع المساعدات بهذا التاريخ سيتم تحديثها</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="bulkNewDate" class="form-label">
+                                <i class="fas fa-calendar-check me-1"></i>التاريخ الجديد <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control" id="bulkNewDate" name="new_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bulkUpdateReason" class="form-label">
+                            <i class="fas fa-comment me-1"></i>سبب التحديث <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="bulkUpdateReason" name="reason" rows="2" required
+                                  placeholder="مثال: تصحيح خطأ في إدخال التاريخ، تعديل حسب طلب الإدارة..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeFilters">
+                            <label class="form-check-label" for="includeFilters">
+                                تطبيق على النتائج المفلترة فقط
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                إذا كان لديك بحث أو فلترة نشطة، ستطبق العملية على النتائج المعروضة فقط
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>تحذير:</strong> هذه العملية ستؤثر على عدة سجلات دفعة واحدة. 
+                        سيتم عرض عدد السجلات المتأثرة قبل التأكيد النهائي.
+                    </div>
+                    
+                    <div id="previewResults" class="alert alert-info d-none">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="previewText"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-info" onclick="previewBulkUpdate()">
+                    <i class="fas fa-search me-2"></i>معاينة النتائج
+                </button>
+                                    <button type="button" class="btn btn-warning" onclick="confirmBulkUpdateDate()" id="confirmBulkBtn">
+                    <i class="fas fa-save me-2"></i>تحديث التواريخ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأكيد حذف الجميع -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAllModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>تأكيد حذف الجميع
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger fw-bold">تحذير: هذا الإجراء خطير جداً!</p>
+                <p>هل أنت متأكد من حذف جميع سجلات المساعدات؟</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    سيتم حذف جميع السجلات نهائياً ولا يمكن التراجع عن هذا الإجراء.
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmDeleteAll">
+                    <label class="form-check-label" for="confirmDeleteAll">
+                        أدرك خطورة هذا الإجراء وأريد المتابعة
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteAll()" disabled id="confirmDeleteAllBtn">
+                    <i class="fas fa-trash-alt me-2"></i>حذف الجميع
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// بيانات أنواع المساعدات (تم إزالة القيود المحددة مسبقاً)
+
+// وظيفة عرض مودال التحديث الجماعي
+function showBulkUpdateDateModal() {
+    try {
+        // التحقق من وجود العناصر
+        const form = document.getElementById('bulkUpdateDateForm');
+        const previewResults = document.getElementById('previewResults');
+        const confirmBtn = document.getElementById('confirmBulkBtn');
+        const modalElement = document.getElementById('bulkUpdateDateModal');
+        
+        if (!form || !previewResults || !confirmBtn || !modalElement) {
+            alert('خطأ: بعض عناصر المودال غير موجودة في الصفحة');
+            return;
+        }
+        
+        // إعادة تعيين النموذج والمتغيرات
+        form.reset();
+        previewResults.classList.add('d-none');
+        confirmBtn.disabled = false; // السماح بالتحديث بدون معاينة
+        
+        // عرض المودال
+        var modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } catch (error) {
+        alert('خطأ في فتح النافذة: ' + error.message);
+    }
+}
+
+// وظيفة معاينة النتائج
+function previewBulkUpdate() {
+    const oldDate = document.getElementById('bulkOldDate').value;
+    const newDate = document.getElementById('bulkNewDate').value;
+    const includeFilters = document.getElementById('includeFilters').checked;
+    
+    if (!oldDate || !newDate) {
+        alert('يرجى تحديد التاريخ القديم والجديد');
+        return;
+    }
+    
+    if (oldDate === newDate) {
+        alert('التاريخ الجديد نفس التاريخ القديم');
+        return;
+    }
+    
+    // إرسال طلب المعاينة
+    const currentUrl = new URL(window.location);
+    const searchParams = includeFilters ? currentUrl.searchParams.toString() : '';
+    
+    fetch('/assistance/bulk-update-date-preview/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            old_date: oldDate,
+            new_date: newDate,
+            include_filters: includeFilters,
+            search_params: searchParams
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const previewDiv = document.getElementById('previewResults');
+            const previewText = document.getElementById('previewText');
+            
+            if (data.count > 0) {
+                previewText.innerHTML = `
+                    سيتم تحديث <strong>${data.count}</strong> مساعدة من تاريخ <strong>${oldDate}</strong> إلى <strong>${newDate}</strong>
+                    ${data.sample_names ? '<br><small>أمثلة: ' + data.sample_names + '</small>' : ''}
+                `;
+                previewDiv.classList.remove('d-none');
+            } else {
+                previewText.innerHTML = `لا توجد مساعدات بتاريخ <strong>${oldDate}</strong>`;
+                previewDiv.classList.remove('d-none');
+            }
+        } else {
+            alert('حدث خطأ في المعاينة: ' + (data.error || 'خطأ غير معروف'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+    });
+}
+
+// وظيفة تأكيد التحديث الجماعي
+function confirmBulkUpdateDate() {
+    const oldDate = document.getElementById('bulkOldDate').value;
+    const newDate = document.getElementById('bulkNewDate').value;
+    const reason = document.getElementById('bulkUpdateReason').value;
+    const includeFilters = document.getElementById('includeFilters').checked;
+    
+    if (!oldDate || !newDate || !reason.trim()) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+    
+    if (oldDate === newDate) {
+        alert('التاريخ الجديد نفس التاريخ القديم');
+        return;
+    }
+    
+    // تأكيد العملية
+    if (!confirm(`هل أنت متأكد من تحديث جميع المساعدات من تاريخ ${oldDate} إلى ${newDate}؟\n\nهذا الإجراء لا يمكن التراجع عنه!`)) {
+        return;
+    }
+    
+    // إرسال الطلب
+    const currentUrl = new URL(window.location);
+    const searchParams = includeFilters ? currentUrl.searchParams.toString() : '';
+    
+    fetch('/assistance/bulk-update-date/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            old_date: oldDate,
+            new_date: newDate,
+            reason: reason,
+            include_filters: includeFilters,
+            search_params: searchParams
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // إغلاق المودال
+            var modal = bootstrap.Modal.getInstance(document.getElementById('bulkUpdateDateModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // عرض رسالة نجاح
+            alert(`تم تحديث ${data.updated_count} مساعدة بنجاح`);
+            
+            // إعادة تحميل الصفحة فوراً
+            window.location.reload();
+        } else {
+            alert('حدث خطأ: ' + (data.error || 'خطأ غير معروف'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+    });
+}
+
+// وظيفة عرض رسالة النجاح
+function showSuccessMessage(message) {
+    // إنشاء عنصر التنبيه
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // إضافة التنبيه إلى الصفحة
+    document.body.appendChild(alert);
+    
+    // إزالة التنبيه تلقائياً بعد 5 ثوان
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+function deleteAssistance(assistanceId) {
+    if (confirm('هل أنت متأكد من الحذف؟')) {
+        fetch(`/assistance/${assistanceId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`assistance-row-${assistanceId}`).style.display = 'none';
+                showAlert('success', data.message);
+            } else {
+                showAlert('danger', 'حدث خطأ أثناء الحذف');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', 'حدث خطأ أثناء الحذف');
+        });
+    }
+}
+
+function duplicateAssistance(assistanceId) {
+    window.location.href = `/assistance/create/?copy=${assistanceId}`;
+}
+
+// نظام التعديل المباشر
+document.addEventListener('DOMContentLoaded', function() {
+    const editableCells = document.querySelectorAll('.editable');
+    
+    editableCells.forEach(cell => {
+        cell.addEventListener('click', function() {
+            if (this.classList.contains('editing')) return;
+            
+            const field = this.dataset.field;
+            const id = this.dataset.id;
+            const currentValue = this.textContent.trim();
+            
+            this.classList.add('editing');
+            this.innerHTML = createEditForm(field, currentValue, id);
+        });
+    });
+});
+
+function createEditForm(field, currentValue, id) {
+    let input = '';
+    
+    if (field === 'assistance_type') {
+        input = `<input type="text" class="edit-input" id="edit-input" value="${currentValue}" placeholder="نوع المساعدة">`;
+    } else if (field === 'assistance_date') {
+        // تحويل التاريخ للصيغة المطلوبة
+        const dateValue = currentValue;
+        input = `<input type="date" class="edit-input" id="edit-input" value="${dateValue}">`;
+    } else if (field === 'quantity') {
+        input = `<input type="number" class="edit-input" id="edit-input" value="${currentValue}" min="0" step="0.01">`;
+    } else if (field === 'national_id') {
+        input = `<input type="text" class="edit-input" id="edit-input" value="${currentValue}" placeholder="رقم الهوية" maxlength="9" pattern="[0-9]{9}">`;
+    } else {
+        input = `<input type="text" class="edit-input" id="edit-input" value="${currentValue}">`;
+    }
+    
+    return `
+        <div class="edit-form">
+            ${input}
+            <div class="edit-buttons">
+                <button class="btn btn-success edit-btn" onclick="saveEdit('${field}', ${id})">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button class="btn btn-secondary edit-btn" onclick="cancelEdit(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function saveEdit(field, id) {
+    const input = document.getElementById('edit-input');
+    const newValue = input.value;
+    const cell = input.closest('.editable');
+    
+    const data = {};
+    data[field] = newValue;
+    
+    fetch(`/assistance/${id}/quick-edit/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // تحديث محتوى الخلية
+            updateCellContent(cell, field, newValue, data.display_value);
+            cell.classList.remove('editing');
+            
+            // إذا تم تعديل رقم الهوية، حدث اسم المستفيد أيضاً
+            if (field === 'national_id' && data.beneficiary_name) {
+                const row = cell.closest('tr');
+                const nameCell = row.querySelector('[data-field="beneficiary_name"]');
+                if (nameCell) {
+                    nameCell.innerHTML = `<strong style="font-size: 1.1em;">${data.beneficiary_name}</strong>`;
+                    if (data.family_members_count) {
+                        nameCell.innerHTML += `<br><small class="text-muted">${data.family_members_count} أفراد</small>`;
+                    }
+                }
+                
+                // تحديث عرض الاسم في خلية رقم الهوية أيضاً
+                cell.innerHTML = `
+                    <div>
+                        <code style="font-size: 1.1em;">${data.display_value}</code>
+                        <br>
+                        <small class="text-muted">${data.beneficiary_name}</small>
+                    </div>
+                `;
+            }
+            
+            showAlert('success', 'تم التحديث بنجاح');
+        } else {
+            showAlert('danger', data.message || 'حدث خطأ أثناء التحديث');
+            cancelEdit(input);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'حدث خطأ أثناء التحديث');
+        cancelEdit(input);
+    });
+}
+
+function cancelEdit(element) {
+    const cell = element.closest('.editable');
+    const field = cell.dataset.field;
+    const id = cell.dataset.id;
+    
+    // استعادة المحتوى الأصلي
+    fetch(`/assistance/${id}/get-field-value/?field=${field}`)
+    .then(response => response.json())
+    .then(data => {
+        updateCellContent(cell, field, data.value, data.display_value);
+        cell.classList.remove('editing');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        cell.classList.remove('editing');
+        location.reload(); // في حالة الخطأ، أعد تحميل الصفحة
+    });
+}
+
+function updateCellContent(cell, field, value, displayValue) {
+    if (field === 'assistance_type') {
+        cell.innerHTML = `<span class="badge assistance-type-badge bg-primary">${displayValue}</span>`;
+    } else if (field === 'quantity') {
+        cell.innerHTML = parseFloat(value).toFixed(0);
+        cell.className = cell.className.replace(/editable/, '') + ' quantity-cell editable';
+    } else if (field === 'beneficiary_name') {
+        cell.innerHTML = `<strong>${displayValue}</strong>`;
+    } else if (field === 'national_id') {
+        // البحث عن الاسم الحالي في خلية الاسم
+        const row = cell.closest('tr');
+        const nameCell = row.querySelector('[data-field="beneficiary_name"]');
+        let currentName = '';
+        if (nameCell) {
+            const nameElement = nameCell.querySelector('strong');
+            if (nameElement) {
+                currentName = nameElement.textContent;
+            }
+        }
+        
+        cell.innerHTML = `
+            <div>
+                <code style="font-size: 1.1em;">${displayValue}</code>
+                <br>
+                <small class="text-muted">${currentName}</small>
+            </div>
+        `;
+    } else if (field === 'district_name') {
+        if (displayValue) {
+            cell.innerHTML = displayValue;
+        } else {
+            cell.innerHTML = '<span class="text-muted">غير محدد</span>';
+        }
+    } else {
+        cell.innerHTML = displayValue;
+    }
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// وظائف الحذف المتقدمة
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.assistance-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateDeleteButtonsState();
+}
+
+function updateDeleteButtonsState() {
+    const checkboxes = document.querySelectorAll('.assistance-checkbox');
+    const checkedBoxes = document.querySelectorAll('.assistance-checkbox:checked');
+    const selectAll = document.getElementById('selectAll');
+    
+    // تحديث حالة اختيار الجميع
+    if (checkedBoxes.length === 0) {
+        selectAll.indeterminate = false;
+        selectAll.checked = false;
+    } else if (checkedBoxes.length === checkboxes.length) {
+        selectAll.indeterminate = false;
+        selectAll.checked = true;
+    } else {
+        selectAll.indeterminate = true;
+        selectAll.checked = false;
+    }
+}
+
+function deleteSelected() {
+    const checkedBoxes = document.querySelectorAll('.assistance-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        showAlert('warning', 'يرجى تحديد عنصر واحد على الأقل للحذف');
+        return;
+    }
+    
+    document.getElementById('selectedCount').textContent = checkedBoxes.length;
+    const modal = new bootstrap.Modal(document.getElementById('deleteSelectedModal'));
+    modal.show();
+}
+
+function confirmDeleteSelected() {
+    const checkedBoxes = document.querySelectorAll('.assistance-checkbox:checked');
+    const ids = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+    
+    // الحصول على CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value || '{{ csrf_token }}';
+    
+    fetch('/assistance/delete-selected/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            'assistance_ids': ids
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteSelectedModal'));
+        modal.hide();
+        
+        if (data.success) {
+            // إخفاء الصفوف المحذوفة
+            ids.forEach(id => {
+                const row = document.getElementById(`assistance-row-${id}`);
+                if (row) {
+                    row.style.display = 'none';
+                }
+            });
+            
+            showAlert('success', data.message);
+            
+            // إعادة تعيين حالة التحديد
+            document.getElementById('selectAll').checked = false;
+            updateDeleteButtonsState();
+            
+            // إعادة تحميل الصفحة إذا لم تعد هناك عناصر
+            const remainingRows = document.querySelectorAll('tbody tr:not([style*="display: none"])');
+            if (remainingRows.length === 0) {
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            }
+        } else {
+            showAlert('danger', data.message || 'حدث خطأ أثناء الحذف');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteSelectedModal'));
+        modal.hide();
+        showAlert('danger', 'حدث خطأ أثناء الحذف');
+    });
+}
+
+function deleteAll() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteAllModal'));
+    modal.show();
+}
+
+function confirmDeleteAll() {
+    const checkbox = document.getElementById('confirmDeleteAll');
+    if (!checkbox.checked) {
+        return;
+    }
+    
+    // الحصول على CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value || '{{ csrf_token }}';
+    
+    fetch('/assistance/delete-all/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAllModal'));
+        modal.hide();
+        
+        if (data.success) {
+            showAlert('success', data.message);
+            
+            // إعادة تحميل الصفحة بعد قليل
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showAlert('danger', data.message || 'حدث خطأ أثناء الحذف');
+        }
+    })
+    .catch(error => {
+        console.error('Error details:', error);
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAllModal'));
+        modal.hide();
+        showAlert('danger', `حدث خطأ أثناء الحذف: ${error.message}`);
+    });
+}
+
+// تفعيل/تعطيل زر التأكيد حسب حالة الـ checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheckbox = document.getElementById('confirmDeleteAll');
+    const confirmBtn = document.getElementById('confirmDeleteAllBtn');
+    
+    if (confirmCheckbox && confirmBtn) {
+        confirmCheckbox.addEventListener('change', function() {
+            confirmBtn.disabled = !this.checked;
+        });
+    }
+});
+</script>
+{% endblock %} 

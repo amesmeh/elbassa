@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}حذف الحي - {{ district.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4><i class="bi bi-exclamation-triangle me-2"></i>تأكيد حذف الحي</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>تحذير!</strong> هذا الإجراء لا يمكن التراجع عنه.
+                </div>
+                
+                <p class="lead">هل أنت متأكد من رغبتك في حذف الحي التالي؟</p>
+                
+                <div class="border rounded p-3 bg-light mb-4">
+                    <h5 class="mb-2">{{ district.name }}</h5>
+                    <p class="mb-1"><strong>مندوب الحي:</strong> {{ district.representative_name }}</p>
+                    <p class="mb-0"><strong>رقم هوية المندوب:</strong> {{ district.representative_id }}</p>
+                </div>
+                
+                {% if guardians_count > 0 %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <strong>تنبيه:</strong> يوجد {{ guardians_count }} ولي أمر مرتبط بهذا الحي. 
+                        سيتم إلغاء ربطهم بالحي عند الحذف.
+                    </div>
+                {% endif %}
+                
+                <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'basic_data:district_detail' district.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-right me-2"></i>إلغاء
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>نعم، احذف الحي
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

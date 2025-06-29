@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حذف الجريح {{ injured.name }} - نظام المساعدات{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        تأكيد الحذف
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>تحذير:</strong> هذا الإجراء لا يمكن التراجع عنه!
+                    </div>
+
+                    <p class="lead">هل أنت متأكد من رغبتك في حذف الجريح التالي؟</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="bi bi-person-fill"></i>
+                                {{ injured.name }}
+                            </h6>
+                            <p class="card-text">
+                                <strong>رقم الهوية:</strong> {{ injured.national_id }}<br>
+                                <strong>تاريخ الإصابة:</strong> {{ injured.injury_date|date:"Y-m-d" }}<br>
+                                <strong>نوع الإصابة:</strong> {{ injured.get_injury_type_display }}<br>
+                                {% if injured.guardian %}
+                                    <strong>ولي الأمر:</strong> {{ injured.guardian.name }}<br>
+                                {% else %}
+                                    <strong>ولي الأمر:</strong> {{ injured.guardian_name }}<br>
+                                {% endif %}
+                                {% if injured.phone_number %}
+                                    <strong>الهاتف:</strong> {{ injured.phone_number }}<br>
+                                {% endif %}
+                                {% if injured.district %}
+                                    <strong>الحي:</strong> {{ injured.district.name }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <form method="post" class="mt-3">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'injured:injured_detail' injured.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> تأكيد الحذف
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

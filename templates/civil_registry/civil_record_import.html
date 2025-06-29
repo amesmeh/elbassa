@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}استيراد السجلات المدنية{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-file-earmark-excel me-2"></i>{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>تعليمات الاستيراد:</strong>
+                    <ul class="mt-2 mb-0">
+                        <li>يجب أن يحتوي الملف على الأعمدة التالية: name, national_id, gender, birth_date, governorate, city</li>
+                        <li>صيغة تاريخ الميلاد: YYYY-MM-DD</li>
+                        <li>الجنس: M للذكر، F للأنثى</li>
+                        <li>المحافظة والمدينة: نص عادي</li>
+                    </ul>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.excel_file.id_for_label }}" class="form-label">
+                            <i class="bi bi-file-excel me-2"></i>ملف Excel
+                        </label>
+                        {{ form.excel_file }}
+                        {% if form.excel_file.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.excel_file.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-2"></i>استيراد البيانات
+                        </button>
+                        <a href="{% url 'civil_registry:civil_registry_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> العودة إلى القائمة
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

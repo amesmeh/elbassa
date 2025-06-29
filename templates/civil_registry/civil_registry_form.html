@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - نظام المساعدات{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-file-text text-dark"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>قيد التطوير:</strong> سيتم إضافة نموذج الإدخال قريباً. 
+                        يمكنك حالياً إدارة البيانات من خلال 
+                        <a href="/admin/" class="alert-link">لوحة الإدارة</a>.
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'civil_registry:civil_registry_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> العودة إلى القائمة
+                        </a>
+                        <a href="/admin/civil_registry/civilregistry/add/" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> إضافة من لوحة الإدارة
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> حفظ
+                    </button>
+                    <a href="{% url 'civil_registry:civil_registry_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x"></i> إلغاء
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    .upload-area:hover {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+    .upload-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+    .sample-table {
+        font-size: 0.85rem;
+    }
+    .sample-table th {
+        background-color: #667eea;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 12px 8px;
+    }
+    .sample-table td {
+        padding: 10px 8px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+    .instructions {
+        background: #e3f2fd;
+        border-right: 4px solid #2196f3;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 5px;
+    }
+    .assistance-types {
+        background: #fff3e0;
+        border-right: 4px solid #ff9800;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- عنوان الصفحة -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-file-upload me-2"></i>{{ title }}</h2>
+                <a href="{% url 'assistance:assistance_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>العودة للقائمة
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- نموذج الاستيراد -->
+            <div class="import-card">
+                <h4 class="mb-4"><i class="fas fa-upload me-2"></i>رفع ملف Excel</h4>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="upload-area">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h5>اختر ملف Excel للاستيراد</h5>
+                        <p class="text-muted">يدعم النظام ملفات .xlsx و .xls</p>
+                        
+                        <div class="mb-3">
+                            {{ form.excel_file }}
+                        </div>
+                        
+                        {% if form.excel_file.help_text %}
+                            <small class="text-muted">{{ form.excel_file.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload me-2"></i>استيراد البيانات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- روابط مساعدة -->
+            <div class="import-card">
+                <h5><i class="fas fa-download me-2"></i>تحميل النموذج</h5>
+                <p class="text-muted">حمل النموذج الجاهز لتسهيل عملية الاستيراد</p>
+                <a href="{% url 'assistance:create_assistance_template' %}" class="btn btn-success w-100">
+                    <i class="fas fa-file-excel me-2"></i>تحميل نموذج Excel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- تعليمات الاستيراد -->
+    <div class="row">
+        <div class="col-12">
+            <div class="instructions">
+                <h5><i class="fas fa-info-circle me-2"></i>تعليمات الاستيراد</h5>
+                <ul class="mb-0">
+                    <li>يجب أن يحتوي الملف على الأعمدة التالية: <strong>رقم الهوية، اسم المستفيد، نوع المساعدة، الكمية، تاريخ المساعدة</strong></li>
+                    <li>رقم الهوية يجب أن يكون 9 أرقام بالضبط</li>
+                    <li>اسم المستفيد: يمكن أن يكون أي اسم (حتى لو لم يكن موجوداً في قاعدة بيانات أولياء الأمور)</li>
+                    <li>نوع المساعدة: اختر من (مواد غذائية، مساعدة نقدية، أدوية، ملابس، أخرى)</li>
+                    <li>الكمية: رقم يمثل كمية المساعدة (مثل: 50، 100، 500)</li>
+                    <li>التاريخ يجب أن يكون بصيغة YYYY-MM-DD (مثل: 2024-01-15)</li>
+                    <li>في حالة وجود أخطاء، سيتم عرض تفاصيل الأخطاء لكل صف</li>
+                </ul>
+            </div>
+
+            <div class="assistance-types">
+                <h6><i class="fas fa-list me-2"></i>أنواع المساعدات المتاحة</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>مواد غذائية</strong></li>
+                            <li><strong>مساعدة نقدية</strong></li>
+                            <li><strong>أدوية</strong></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>ملابس</strong></li>
+                            <li><strong>أخرى</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول نموذجي -->
+    <div class="row">
+        <div class="col-12">
+            <div class="import-card">
+                <h5><i class="fas fa-table me-2"></i>مثال على تنسيق البيانات</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered sample-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الهوية</th>
+                                <th>اسم المستفيد</th>
+                                <th>نوع المساعدة</th>
+                                <th>الكمية</th>
+                                <th>تاريخ المساعدة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>123456789</td>
+                                <td>أحمد محمد علي</td>
+                                <td>مواد غذائية</td>
+                                <td>50</td>
+                                <td>2024-01-15</td>
+                            </tr>
+                            <tr>
+                                <td>987654321</td>
+                                <td>محمد خالد حسن</td>
+                                <td>مساعدة نقدية</td>
+                                <td>500</td>
+                                <td>2024-01-20</td>
+                            </tr>
+                            <tr>
+                                <td>456789123</td>
+                                <td>خالد أحمد سالم</td>
+                                <td>أدوية</td>
+                                <td>10</td>
+                                <td>2024-01-25</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

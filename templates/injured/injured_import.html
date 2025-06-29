@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}استيراد الجرحى - نظام المساعدات{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-upload"></i>
+                        استيراد الجرحى من ملف Excel
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- تعليمات الاستيراد -->
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> تعليمات مهمة:</h6>
+                        <ul class="mb-0">
+                            <li>يجب أن يكون الملف بصيغة Excel (.xlsx أو .xls)</li>
+                            <li>الصف الأول يجب أن يحتوي على أسماء الأعمدة</li>
+                            <li>الأعمدة المطلوبة:
+                                <code>name, national_id, guardian_national_id, injury_date, injury_type</code>
+                            </li>
+                            <li>الأعمدة الاختيارية: <code>phone_number, injury_description, notes</code></li>
+                            <li>تواريخ الإصابة يجب أن تكون بصيغة صحيحة (YYYY-MM-DD)</li>
+                            <li>أرقام الهوية يجب أن تكون 9 أرقام</li>
+                            <li>سيتم ربط الجريح تلقائياً بولي الأمر من البيانات الأساسية</li>
+                        </ul>
+                    </div>
+
+                    <!-- نموذج الاستيراد -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.excel_file.id_for_label }}" class="form-label">
+                                <i class="bi bi-file-earmark-excel"></i>
+                                {{ form.excel_file.label }}
+                            </label>
+                            {{ form.excel_file }}
+                            {% if form.excel_file.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.excel_file.errors.0 }}
+                                </div>
+                            {% endif %}
+                            {% if form.excel_file.help_text %}
+                                <div class="form-text">{{ form.excel_file.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- أزرار التحكم -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'injured:injured_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-upload"></i> استيراد البيانات
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- نموذج ملف Excel -->
+                    <div class="mt-4">
+                        <h6>نموذج ملف Excel:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>name</th>
+                                        <th>national_id</th>
+                                        <th>guardian_national_id</th>
+                                        <th>injury_date</th>
+                                        <th>injury_type</th>
+                                        <th>phone_number</th>
+                                        <th>injury_description</th>
+                                        <th>notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>سارة أحمد علي محمد</td>
+                                        <td>111222333</td>
+                                        <td>123456789</td>
+                                        <td>2023-11-15</td>
+                                        <td>shrapnel</td>
+                                        <td>0599111222</td>
+                                        <td>إصابة في الساق اليمنى</td>
+                                        <td>ملاحظات اختيارية</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <small class="text-muted">
+                            <strong>ملاحظة:</strong> قيم injury_type المسموحة:
+                            gunshot, shrapnel, burns, fractures, head_injury, spinal_injury, amputation, other
+                        </small>
+                    </div>
+
+                    <!-- تنبيه عن الربط التلقائي -->
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>تنبيه:</strong> سيتم البحث عن ولي الأمر في البيانات الأساسية باستخدام رقم الهوية. 
+                        إذا لم يتم العثور عليه، ستحتاج إلى إضافته إلى البيانات الأساسية أولاً.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

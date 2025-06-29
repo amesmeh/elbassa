@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تحديث العدادات من ملف Excel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-file-upload me-2"></i>
+                        تحديث العدادات من ملف Excel
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <h5><i class="fas fa-info-circle me-2"></i>الغرض من هذه الأداة</h5>
+                        <p class="mb-2">
+                            تستخدم هذه الأداة لتحديث عدادات أولياء الأمور (عدد الأطفال والزوجات) بناءً على ملف Excel.
+                            ستقوم بقراءة العدادات من الملف وتطبيقها على البيانات الموجودة.
+                        </p>
+                        <ul class="mb-0">
+                            <li><strong>عدد الأطفال:</strong> سيتم تحديثه من عمود "عدد الأبناء"</li>
+                            <li><strong>عدد الزوجات:</strong> سيتم تحديثه من عمود "عدد الزوجات"</li>
+                            <li><strong>إجمالي أفراد العائلة:</strong> سيتم حسابه تلقائياً (1 + أطفال + زوجات)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>متطلبات الملف</h6>
+                        <ul class="mb-0">
+                            <li>يجب أن يحتوي الملف على الأعمدة التالية: "رقم الهوية"، "عدد الأبناء"، "عدد الزوجات"</li>
+                            <li>أرقام الهوية يجب أن تطابق أولياء الأمور الموجودين في النظام</li>
+                            <li>الملف يجب أن يكون بصيغة .xlsx</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-secondary" role="alert">
+                        <h6><i class="fas fa-chart-bar me-2"></i>إحصائيات النظام الحالي</h6>
+                        <p class="mb-0">عدد أولياء الأمور في النظام: <strong>{{ guardians_count }}</strong></p>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" class="mt-4">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="excel_file" class="form-label">
+                                        <i class="fas fa-file-excel me-2"></i>
+                                        اختر ملف Excel:
+                                    </label>
+                                    <input type="file" class="form-control" id="excel_file" name="excel_file" 
+                                           accept=".xlsx" required>
+                                    <div class="form-text">يجب أن يكون الملف بصيغة .xlsx ويحتوي على الأعمدة المطلوبة</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-info btn-lg">
+                                        <i class="fas fa-sync-alt me-2"></i>
+                                        تحديث العدادات
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                العودة لقائمة أولياء الأمور
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <a href="{% url 'basic_data:download_guardians_template' %}" class="btn btn-outline-success">
+                                <i class="fas fa-download me-2"></i>
+                                تحميل نموذج Excel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('excel_file');
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(e) {
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            alert('يرجى اختيار ملف Excel أولاً');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+            e.preventDefault();
+            alert('يرجى اختيار ملف بصيغة .xlsx');
+            return;
+        }
+        
+        // تأكيد العملية
+        if (!confirm('هل أنت متأكد من تحديث العدادات؟ سيتم تطبيق العدادات من ملف Excel على جميع أولياء الأمور المطابقين.')) {
+            e.preventDefault();
+            return;
+        }
+        
+        // إظهار رسالة التحميل
+        const btn = form.querySelector('button[type="submit"]');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري التحديث...';
+        btn.disabled = true;
+    });
+});
+</script>
+{% endblock %} 

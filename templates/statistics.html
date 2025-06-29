@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الإحصائيات العامة - نظام المساعدات{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #ffd700;
+    }
+    .stats-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .section-title {
+        color: #495057;
+        border-bottom: 3px solid #007bff;
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="section-title text-center">
+                <i class="bi bi-bar-chart-fill"></i>
+                الإحصائيات العامة لنظام المساعدات
+            </h1>
+        </div>
+    </div>
+
+    <!-- الإحصائيات الرئيسية -->
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-people-fill fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_basic_data }}</div>
+                <div class="stats-label">إجمالي البيانات الأساسية</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-star-fill fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_martyrs }}</div>
+                <div class="stats-label">إجمالي الشهداء</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-bandaid-fill fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_injured }}</div>
+                <div class="stats-label">إجمالي الجرحى</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-heart-pulse-fill fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_medical }}</div>
+                <div class="stats-label">إجمالي الحالات المرضية</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-house-damage-fill fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_damages }}</div>
+                <div class="stats-label">إجمالي الأضرار</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-person-hearts fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_orphans }}</div>
+                <div class="stats-label">الأيتام</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-gift-fill fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_aids }}</div>
+                <div class="stats-label">إجمالي المساعدات</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card text-center">
+                <i class="bi bi-card-list fa-3x mb-3"></i>
+                <div class="stats-number">{{ total_civil_registry }}</div>
+                <div class="stats-label">إجمالي السجل المدني</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- التوزيع حسب الأحياء -->
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h4 class="text-center mb-4">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    التوزيع حسب الأحياء
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>الحي</th>
+                                <th>البيانات الأساسية</th>
+                                <th>الشهداء</th>
+                                <th>الجرحى</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for district in districts_stats %}
+                            <tr>
+                                <td>{{ district.name }}</td>
+                                <td>{{ district.basic_data_count|default:0 }}</td>
+                                <td>{{ district.martyrs_count|default:0 }}</td>
+                                <td>{{ district.injured_count|default:0 }}</td>
+                                <td class="fw-bold">{{ district.total_count }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">لا توجد بيانات</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h4 class="text-center mb-4">
+                    <i class="bi bi-calendar3"></i>
+                    الإحصائيات الشهرية
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>الشهر</th>
+                                <th>البيانات الجديدة</th>
+                                <th>المساعدات</th>
+                                <th>التقارير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for month in monthly_stats %}
+                            <tr>
+                                <td>{{ month.month_name }}</td>
+                                <td>{{ month.new_records|default:0 }}</td>
+                                <td>{{ month.aids_count|default:0 }}</td>
+                                <td>{{ month.reports_count|default:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">لا توجد بيانات</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات متقدمة -->
+    <div class="row mt-4">
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h5 class="text-center mb-3">
+                    <i class="bi bi-gender-ambiguous"></i>
+                    التوزيع حسب الجنس
+                </h5>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="text-primary">
+                            <i class="bi bi-gender-male fa-2x"></i>
+                            <div class="h4 mt-2">{{ gender_stats.male|default:0 }}</div>
+                            <small>ذكر</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-danger">
+                            <i class="bi bi-gender-female fa-2x"></i>
+                            <div class="h4 mt-2">{{ gender_stats.female|default:0 }}</div>
+                            <small>أنثى</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h5 class="text-center mb-3">
+                    <i class="bi bi-calendar-date"></i>
+                    التوزيع العمري
+                </h5>
+                <div class="text-center">
+                    <div class="mb-2">
+                        <span class="badge bg-success me-2">أطفال (0-17)</span>
+                        <span class="h5">{{ age_stats.children|default:0 }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-primary me-2">بالغين (18-59)</span>
+                        <span class="h5">{{ age_stats.adults|default:0 }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-warning me-2">كبار السن (60+)</span>
+                        <span class="h5">{{ age_stats.elderly|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h5 class="text-center mb-3">
+                    <i class="bi bi-activity"></i>
+                    حالة النظام
+                </h5>
+                <div class="text-center">
+                    <div class="mb-2">
+                        <span class="text-success">
+                            <i class="bi bi-check-circle-fill"></i>
+                            آخر تحديث: {{ last_update|date:"Y-m-d H:i" }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-info">
+                            <i class="bi bi-database"></i>
+                            إجمالي السجلات: {{ total_records }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-warning">
+                            <i class="bi bi-clock"></i>
+                            اليوم: {{ today|date:"Y-m-d" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- روابط سريعة -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="text-center mb-3">
+                    <i class="bi bi-link-45deg"></i>
+                    روابط سريعة للتبويبات
+                </h5>
+                <div class="row text-center">
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="bi bi-people d-block mb-2"></i>
+                            البيانات الأساسية
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <a href="{% url 'martyrs:martyrs_list' %}" class="btn btn-outline-warning btn-lg w-100">
+                            <i class="bi bi-star d-block mb-2"></i>
+                            الشهداء
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <a href="{% url 'injured:injured_list' %}" class="btn btn-outline-danger btn-lg w-100">
+                            <i class="bi bi-bandaid d-block mb-2"></i>
+                            الجرحى
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <a href="{% url 'medical:medical_list' %}" class="btn btn-outline-success btn-lg w-100">
+                            <i class="bi bi-heart-pulse d-block mb-2"></i>
+                            البيانات المرضية
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <a href="{% url 'damages:damages_list' %}" class="btn btn-outline-secondary btn-lg w-100">
+                            <i class="bi bi-house-damage d-block mb-2"></i>
+                            الأضرار
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <a href="{% url 'orphans:orphans_list' %}" class="btn btn-outline-info btn-lg w-100">
+                            <i class="bi bi-person-hearts d-block mb-2"></i>
+                            الأيتام
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- تذييل الصفحة -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="text-center text-muted">
+                <p>
+                    <i class="bi bi-info-circle"></i>
+                    هذه الإحصائيات محدثة حتى تاريخ {{ today|date:"Y-m-d" }} الساعة {{ now|date:"H:i" }}
+                </p>
+                <p>
+                    <a href="{% url 'reports:main' %}" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-text"></i>
+                        عرض التقارير التفصيلية
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // تحديث الأرقام بتأثير العد
+    const statsNumbers = document.querySelectorAll('.stats-number');
+    statsNumbers.forEach(function(number) {
+        const finalNumber = parseInt(number.textContent);
+        let currentNumber = 0;
+        const increment = finalNumber / 20;
+        
+        const timer = setInterval(function() {
+            currentNumber += increment;
+            if (currentNumber >= finalNumber) {
+                number.textContent = finalNumber;
+                clearInterval(timer);
+            } else {
+                number.textContent = Math.floor(currentNumber);
+            }
+        }, 50);
+    });
+    
+    // تحديث الصفحة كل 5 دقائق
+    setTimeout(function() {
+        location.reload();
+    }, 300000); // 5 minutes
+});
+</script>
+{% endblock %} 

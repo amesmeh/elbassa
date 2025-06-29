@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - نظام المساعدات{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    .form-section {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+    }
+    .section-title {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #6f42c1;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-plus"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- قسم البيانات الشخصية -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-user"></i>
+                                البيانات الشخصية
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label required">
+                                        {{ form.name.label }}
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.national_id.id_for_label }}" class="form-label required">
+                                        {{ form.national_id.label }}
+                                    </label>
+                                    {{ form.national_id }}
+                                    {% if form.national_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.national_id.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.gender.id_for_label }}" class="form-label required">
+                                        {{ form.gender.label }}
+                                    </label>
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.gender.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.birth_date.id_for_label }}" class="form-label required">
+                                        {{ form.birth_date.label }}
+                                    </label>
+                                    {{ form.birth_date }}
+                                    {% if form.birth_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.birth_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قسم البيانات الجغرافية والأسرية -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-map-marker-alt"></i>
+                                البيانات الجغرافية والأسرية
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.governorate.id_for_label }}" class="form-label required">
+                                        {{ form.governorate.label }}
+                                    </label>
+                                    {{ form.governorate }}
+                                    {% if form.governorate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.governorate.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.city.id_for_label }}" class="form-label required">
+                                        {{ form.city.label }}
+                                    </label>
+                                    {{ form.city }}
+                                    {% if form.city.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.city.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.family_members_count.id_for_label }}" class="form-label">
+                                        {{ form.family_members_count.label }}
+                                    </label>
+                                    {{ form.family_members_count }}
+                                    {% if form.family_members_count.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.family_members_count.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">أدخل العدد الإجمالي لأفراد الأسرة</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- أزرار التحكم -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'civil_registry:civil_records_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                {% if civil_record %}تحديث البيانات{% else %}إضافة السجل{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // التركيز على أول حقل
+    const nameField = document.getElementById('{{ form.name.id_for_label }}');
+    if (nameField) {
+        nameField.focus();
+    }
+    
+    // التحقق من رقم الهوية
+    const nationalIdField = document.getElementById('{{ form.national_id.id_for_label }}');
+    if (nationalIdField) {
+        nationalIdField.addEventListener('input', function() {
+            // إزالة أي أحرف غير رقمية
+            this.value = this.value.replace(/\D/g, '');
+            
+            // تحديد الحد الأقصى للطول
+            if (this.value.length > 9) {
+                this.value = this.value.slice(0, 9);
+            }
+        });
+    }
+    
+    // التحقق من عدد أفراد الأسرة
+    const familyCountField = document.getElementById('{{ form.family_members_count.id_for_label }}');
+    if (familyCountField) {
+        familyCountField.addEventListener('input', function() {
+            // التأكد من أن القيمة موجبة
+            if (this.value < 0) {
+                this.value = '';
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

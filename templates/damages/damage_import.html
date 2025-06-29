@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}استيراد الأضرار{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    .upload-area:hover {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+    .upload-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+    .sample-table {
+        font-size: 0.85rem;
+    }
+    .sample-table th {
+        background-color: #667eea;
+        color: white;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- العنوان -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-file-upload"></i>
+            استيراد الأضرار من Excel
+        </h1>
+        <p>تحميل بيانات الأضرار بشكل مجمع من ملف Excel</p>
+    </div>
+
+    <!-- النموذج -->
+    <div class="import-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="upload-area">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h4>اختر ملف Excel للاستيراد</h4>
+                <p class="text-muted">يدعم ملفات .xlsx و .xls</p>
+                
+                <div class="mt-3">
+                    {{ form.excel_file }}
+                </div>
+                
+                {% if form.excel_file.errors %}
+                    <div class="alert alert-danger mt-3">
+                        {{ form.excel_file.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-upload"></i> استيراد البيانات
+                </button>
+                <a href="{% url 'damages:damages_list' %}" class="btn btn-secondary btn-lg ms-2">
+                    <i class="fas fa-arrow-left"></i> العودة
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- تعليمات الاستيراد -->
+    <div class="import-card">
+        <h5 class="text-primary mb-3">
+            <i class="fas fa-info-circle"></i>
+            تعليمات الاستيراد
+        </h5>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h6>الحقول المطلوبة:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> guardian_national_id (رقم هوية ولي الأمر)</li>
+                    <li><i class="fas fa-check text-success"></i> guardian_name (اسم ولي الأمر)</li>
+                    <li><i class="fas fa-check text-success"></i> housing_type (نوع السكن)</li>
+                    <li><i class="fas fa-check text-success"></i> damage_type (نوع الضرر)</li>
+                    <li><i class="fas fa-check text-success"></i> damage_percentage (نسبة الضرر)</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>الحقول الاختيارية:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-circle text-info"></i> phone_number (رقم الجوال)</li>
+                    <li><i class="fas fa-circle text-info"></i> ownership_type (ملك/إيجار)</li>
+                    <li><i class="fas fa-circle text-info"></i> housing_condition (حالة السكن)</li>
+                    <li><i class="fas fa-circle text-info"></i> construction_type (نوع البناء)</li>
+                    <li><i class="fas fa-circle text-info"></i> floors_count (عدد الطوابق)</li>
+                    <li><i class="fas fa-circle text-info"></i> damage_date (تاريخ الضرر)</li>
+                    <li><i class="fas fa-circle text-info"></i> estimated_cost_ils (التكلفة بالشيكل)</li>
+                    <li><i class="fas fa-circle text-info"></i> estimated_cost_usd (التكلفة بالدولار)</li>
+                    <li><i class="fas fa-circle text-info"></i> notes (ملاحظات)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- قيم نوع السكن -->
+        <div class="mt-4">
+            <h6>قيم نوع السكن المقبولة:</h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <code>apartment</code> - شقة
+                </div>
+                <div class="col-md-4">
+                    <code>house</code> - بيت
+                </div>
+                <div class="col-md-4">
+                    <code>villa</code> - فيلا
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <code>room</code> - غرفة
+                </div>
+                <div class="col-md-4">
+                    <code>shop</code> - محل تجاري
+                </div>
+                <div class="col-md-4">
+                    <code>warehouse</code> - مستودع
+                </div>
+            </div>
+        </div>
+
+        <!-- قيم نوع الضرر -->
+        <div class="mt-3">
+            <h6>قيم نوع الضرر المقبولة:</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <code>total</code> - كلي
+                </div>
+                <div class="col-md-6">
+                    <code>partial</code> - جزئي
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نموذج جدول Excel -->
+    <div class="import-card">
+        <h5 class="text-primary mb-3">
+            <i class="fas fa-table"></i>
+            نموذج جدول Excel
+        </h5>
+        
+        <div class="table-responsive">
+            <table class="table table-bordered sample-table">
+                <thead>
+                    <tr>
+                        <th>guardian_national_id</th>
+                        <th>guardian_name</th>
+                        <th>phone_number</th>
+                        <th>housing_type</th>
+                        <th>damage_type</th>
+                        <th>damage_percentage</th>
+                        <th>estimated_cost_ils</th>
+                        <th>notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>123456789</td>
+                        <td>محمد أحمد علي</td>
+                        <td>0599123456</td>
+                        <td>apartment</td>
+                        <td>partial</td>
+                        <td>70</td>
+                        <td>50000</td>
+                        <td>ضرر في الجدران</td>
+                    </tr>
+                    <tr>
+                        <td>987654321</td>
+                        <td>فاطمة سالم محمد</td>
+                        <td>0598765432</td>
+                        <td>house</td>
+                        <td>total</td>
+                        <td>100</td>
+                        <td>100000</td>
+                        <td>دمار كامل</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-lightbulb"></i>
+            <strong>نصيحة:</strong> تأكد من حفظ الملف بتنسيق Excel (.xlsx) وأن رؤوس الأعمدة تطابق الأسماء المذكورة أعلاه تماماً.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"]');
+    const uploadArea = document.querySelector('.upload-area');
+    
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            uploadArea.style.borderColor = '#28a745';
+            uploadArea.style.backgroundColor = '#d4edda';
+            
+            const fileName = this.files[0].name;
+            const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2);
+            
+            uploadArea.querySelector('h4').textContent = `تم اختيار: ${fileName}`;
+            uploadArea.querySelector('p').textContent = `حجم الملف: ${fileSize} ميجابايت`;
+        }
+    });
+});
+</script>
+{% endblock %} 

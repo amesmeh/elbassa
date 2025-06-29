@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .search-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        white-space: nowrap;
+    }
+    .table td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .damage-type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+    .damage-percentage {
+        font-weight: 600;
+        color: #dc3545;
+    }
+    .editable {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .editable:hover {
+        background-color: #e3f2fd !important;
+    }
+    .btn-group-actions {
+        white-space: nowrap;
+    }
+    .btn-action {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.9rem;
+        margin: 0 1px;
+        border-radius: 6px;
+    }
+    .pagination-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    /* العنوان البسيط */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .page-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .page-header p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-home"></i>
+            برنامج الأضرار - قطاع غزة
+        </h1>
+        <p>نظام إدارة وتنظيم أضرار الممتلكات</p>
+    </div>
+
+    <!-- Action Button -->
+    {% comment %} إخفاء الأزرار عن المندوبين والمراقبين - إبقاء المشرفين فقط {% endcomment %}
+    {% if user.is_superuser %}
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <!-- قائمة Excel -->
+            <div class="btn-group me-2" role="group">
+                <button type="button" class="btn btn-success btn-lg dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-excel me-1"></i>Excel
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'damages:export_damages_excel' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                            <i class="fas fa-download me-2"></i>تصدير Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <i class="fas fa-file-upload me-2"></i>استيراد Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'damages:download_damages_template' %}">
+                            <i class="fas fa-file-arrow-down me-2"></i>تحميل النموذج
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <a href="{% url 'damages:damage_add' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> إضافة ضرر جديد
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ total_count }}</h4>
+                <small>إجمالي الأضرار</small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ avg_damage_percentage|floatformat:1 }}%</h4>
+                <small>متوسط نسبة الضرر</small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">{{ total_cost_ils|floatformat:0 }} ₪</h4>
+                <small>إجمالي التكلفة (شيكل)</small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <h4 class="mb-1">${{ total_cost_usd|floatformat:0 }}</h4>
+                <small>إجمالي التكلفة (دولار)</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="search-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                {{ search_form.search_query }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.damage_type }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.housing_type }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.date_from }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.date_to }}
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+        
+        <!-- صف ثاني للبحث بالتكلفة -->
+        <form method="get" class="row g-3 mt-2">
+            <div class="col-md-3">
+                <label class="form-label small">البحث بالتكلفة (شيكل)</label>
+            </div>
+            <div class="col-md-3">
+                {{ search_form.cost_ils_min }}
+            </div>
+            <div class="col-md-3">
+                {{ search_form.cost_ils_max }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search"></i> بحث بالتكلفة
+                </button>
+            </div>
+        </form>
+        
+        {% if request.GET %}
+        <div class="mt-3">
+            <a href="{% url 'damages:damages_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-times"></i> إلغاء البحث
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-container">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 15%;">صاحب العقار</th>
+                        <th style="width: 10%;">رقم الهوية</th>
+                        <th style="width: 12%;">نوع السكن</th>
+                        <th style="width: 10%;">نوع الضرر</th>
+                        <th style="width: 8%;">نسبة الضرر</th>
+                        <th style="width: 12%;">التكلفة (شيكل)</th>
+                        <th style="width: 12%;">التكلفة (دولار)</th>
+                        <th style="width: 8%;">التاريخ</th>
+                        <th style="width: 9%;">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for damage in page_obj.object_list %}
+                    <tr id="row-{{ damage.pk }}">
+                        <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+                        <td>
+                            <strong>{{ damage.guardian_name|default:"غير محدد" }}</strong>
+                            {% if damage.phone_number %}
+                            <br><small class="text-muted">{{ damage.phone_number }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code style="font-size: 1.1em;">{{ damage.guardian_national_id }}</code>
+                        </td>
+                        <td>{{ damage.get_housing_type_display }}</td>
+                        <td>
+                            <span class="badge damage-type-badge 
+                                {% if damage.damage_type == 'total' %}bg-danger
+                                {% elif damage.damage_type == 'major' %}bg-warning text-dark
+                                {% elif damage.damage_type == 'minor' %}bg-info
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ damage.get_damage_type_display }}
+                            </span>
+                        </td>
+                        <td class="damage-percentage">
+                            {{ damage.damage_percentage|default:0 }}%
+                        </td>
+                        <td class="text-success">
+                            {% if damage.estimated_cost_ils %}
+                                {{ damage.estimated_cost_ils|floatformat:0 }} ₪
+                            {% else %}
+                                <span class="text-muted">غير محدد</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-primary">
+                            {% if damage.estimated_cost_usd %}
+                                ${{ damage.estimated_cost_usd|floatformat:0 }}
+                            {% else %}
+                                <span class="text-muted">غير محدد</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ damage.damage_date|date:"Y-m-d" }}
+                        </td>
+                        <td>
+                            <div class="btn-group-actions">
+                                <!-- زر العرض متاح للجميع -->
+                                <a href="{% url 'damages:damage_detail' damage.pk %}" 
+                                   class="btn btn-outline-info btn-action" title="عرض التفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                <!-- أزرار التعديل والحذف للمشرفين فقط -->
+                                {% if user.is_superuser %}
+                                <a href="{% url 'damages:damage_edit' damage.pk %}" 
+                                   class="btn btn-outline-warning btn-action" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-action" 
+                                        onclick="deleteDamage({{ damage.pk }})" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-home fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">لا توجد أضرار</h4>
+            <p class="text-muted">لم يتم العثور على أي أضرار تطابق معايير البحث.</p>
+            {% if user.is_superuser %}
+            <a href="{% url 'damages:damage_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> إضافة أول ضرر
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-container">
+        <nav aria-label="تنقل بين الصفحات">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                            <i class="fas fa-chevron-right"></i> السابق
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                            التالي <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <div class="text-center mt-3 text-muted small">
+            عرض {{ page_obj.start_index }} - {{ page_obj.end_index }} من أصل {{ page_obj.paginator.count }} ضرر
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function deleteDamage(damageId) {
+    if (confirm('هل أنت متأكد من الحذف؟')) {
+        fetch(`/damages/${damageId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`row-${damageId}`).style.display = 'none';
+                showAlert('success', data.message);
+            } else {
+                showAlert('danger', 'حدث خطأ أثناء الحذف');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', 'حدث خطأ أثناء الحذف');
+        });
+    }
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+
+<!-- نافذة استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="fas fa-upload me-2"></i>استيراد الأضرار من Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'damages:import_damages_excel' %}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">اختر ملف Excel</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" 
+                               accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            يجب أن يكون الملف بصيغة Excel (.xlsx أو .xls)
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb me-2"></i>تعليمات مهمة:</h6>
+                        <ul class="mb-0">
+                            <li>تأكد من أن الملف يحتوي على الأعمدة المطلوبة</li>
+                            <li>استخدم النموذج المحدد لضمان التوافق</li>
+                            <li>تأكد من صحة البيانات قبل الاستيراد</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>استيراد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

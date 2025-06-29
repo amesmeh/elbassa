@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if is_edit %}
+        تعديل التوزيع - برنامج المساعدات
+    {% elif is_copy %}
+        <i class="bi bi-copy me-2"></i>تكرار التوزيع
+    {% else %}
+        إضافة توزيع جديد - برنامج المساعدات
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>
+                    {% if is_edit %}
+                        <i class="bi bi-pencil me-2"></i>تعديل التوزيع
+                    {% elif is_copy %}
+                        <i class="bi bi-copy me-2"></i>تكرار التوزيع
+                    {% else %}
+                        <i class="bi bi-plus-circle me-2"></i>إضافة توزيع جديد
+                    {% endif %}
+                </h4>
+                <div>
+                    <a href="{% url 'aids:distributions_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-right me-1"></i>العودة للتوزيعات
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="row g-3">
+                    {% csrf_token %}
+                    
+                    <!-- البحث عن ولي الأمر -->
+                    <div class="col-md-6">
+                        <label for="guardian_search" class="form-label">البحث عن ولي الأمر *</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="guardian_search" 
+                                   placeholder="ابحث بالاسم أو رقم الهوية..." autocomplete="off"
+                                   {% if distribution %}value="{{ distribution.guardian.name }}"
+                                   {% elif original_distribution %}value="{{ original_distribution.guardian.name }}"{% endif %}>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearGuardianSelection()">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" name="guardian" id="selected_guardian_id" 
+                               {% if distribution %}value="{{ distribution.guardian.pk }}"
+                               {% elif original_distribution %}value="{{ original_distribution.guardian.pk }}"{% endif %} required>
+                        <div id="guardian_results" class="list-group mt-2" style="display: none;"></div>
+                        <div id="selected_guardian_info" class="alert alert-info mt-2" 
+                             {% if distribution or original_distribution %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+                            {% if distribution %}
+                                <strong>{{ distribution.guardian.name }}</strong><br>
+                                <small>هوية: {{ distribution.guardian.national_id }} | جوال: {{ distribution.guardian.phone_number }} | الحي: {{ distribution.guardian.district.name|default:"غير محدد" }}</small>
+                            {% elif original_distribution %}
+                                <strong>{{ original_distribution.guardian.name }}</strong><br>
+                                <small>هوية: {{ original_distribution.guardian.national_id }} | جوال: {{ original_distribution.guardian.phone_number }} | الحي: {{ original_distribution.guardian.district.name|default:"غير محدد" }}</small>
+                            {% endif %}
+                        </div>
+                                                        <small class="text-muted">يمكن البحث بأجزاء من الاسم</small>
+                    </div>
+                    
+                    <!-- نوع المساعدة -->
+                    <div class="col-md-6">
+                        <label for="aid_type" class="form-label">نوع المساعدة *</label>
+                        <select name="aid_type" id="aid_type" class="form-select" required>
+                            <option value="">اختر نوع المساعدة</option>
+                            {% for aid_type in aid_types %}
+                                <option value="{{ aid_type.pk }}"
+                                        {% if distribution and distribution.aid_type.pk == aid_type.pk %}selected
+                                        {% elif original_distribution and original_distribution.aid_type.pk == aid_type.pk %}selected{% endif %}>
+                                    {{ aid_type.name }} - {{ aid_type.get_category_display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- تاريخ التوزيع -->
+                    <div class="col-md-6">
+                        <label for="distribution_date" class="form-label">تاريخ التوزيع *</label>
+                        <input type="date" name="distribution_date" id="distribution_date" 
+                               class="form-control" required 
+                               value="{% if distribution %}{{ distribution.distribution_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+                    </div>
+                    
+                    <!-- ملاحظات -->
+                    <div class="col-md-6">
+                        <label for="notes" class="form-label">ملاحظات</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                  placeholder="أي ملاحظات إضافية...">{% if distribution %}{{ distribution.notes }}{% elif original_distribution %}{{ original_distribution.notes }}{% endif %}</textarea>
+                    </div>
+                    
+                    <!-- أزرار الإجراءات -->
+                    <div class="col-12">
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    {% if is_edit %}
+                                        <i class="bi bi-check me-2"></i>حفظ التعديلات
+                                    {% elif is_copy %}
+                                        <i class="bi bi-check me-2"></i>حفظ التكرار
+                                    {% else %}
+                                        <i class="bi bi-check me-2"></i>حفظ التوزيع
+                                    {% endif %}
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary ms-2" onclick="resetForm()">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>إعادة تعيين
+                                </button>
+                            </div>
+                            <div>
+                                <a href="{% url 'aids:distributions_list' %}" class="btn btn-outline-danger">
+                                    <i class="bi bi-x me-2"></i>إلغاء
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- معلومات إضافية -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle me-2"></i>تعليمات</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success me-2"></i>ابحث عن ولي الأمر بالاسم أو رقم الهوية</li>
+                    <li><i class="bi bi-check text-success me-2"></i>يمكن البحث بأجزاء من الاسم</li>
+                    <li><i class="bi bi-check text-success me-2"></i>اختر نوع المساعدة المناسب</li>
+                    <li><i class="bi bi-check text-success me-2"></i>حدد تاريخ التوزيع</li>
+                    <li><i class="bi bi-check text-success me-2"></i>يمكن ترحيل التوزيع للمستفيدين لاحقاً</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightbulb me-2"></i>نصائح</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-arrow-left text-primary me-2"></i>تأكد من صحة بيانات ولي الأمر</li>
+                    <li><i class="bi bi-arrow-left text-primary me-2"></i>راجع نوع المساعدة قبل الحفظ</li>
+                    <li><i class="bi bi-arrow-left text-primary me-2"></i>يمكن إضافة ملاحظات توضيحية</li>
+                    <li><i class="bi bi-arrow-left text-primary me-2"></i>بعد الحفظ يمكن ترحيل التوزيع</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let searchTimeout;
+
+$(document).ready(function() {
+    // البحث الذكي عن أولياء الأمور
+    $('#guardian_search').on('input', function() {
+        clearTimeout(searchTimeout);
+        const query = $(this).val().trim();
+        
+        if (query.length >= 2) {
+            searchTimeout = setTimeout(() => {
+                searchGuardians(query);
+            }, 300);
+        } else {
+            $('#guardian_results').hide().empty();
+        }
+    });
+    
+    // إخفاء النتائج عند النقر خارجها
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#guardian_search, #guardian_results').length) {
+            $('#guardian_results').hide();
+        }
+    });
+});
+
+function searchGuardians(query) {
+    $.ajax({
+        url: '{% url "aids:search_guardians_ajax" %}',
+        data: { 'q': query },
+        dataType: 'json',
+        success: function(data) {
+            displayGuardianResults(data.guardians);
+        },
+        error: function() {
+            $('#guardian_results').hide().empty();
+        }
+    });
+}
+
+function displayGuardianResults(guardians) {
+    const resultsDiv = $('#guardian_results');
+    resultsDiv.empty();
+    
+    if (guardians.length === 0) {
+        resultsDiv.append('<div class="list-group-item text-muted">لا توجد نتائج</div>');
+    } else {
+        guardians.forEach(function(guardian) {
+            const item = $(`
+                <div class="list-group-item list-group-item-action" style="cursor: pointer;" 
+                     onclick="selectGuardian(${guardian.id}, '${guardian.name}', '${guardian.national_id}', '${guardian.phone}', '${guardian.district}')">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${guardian.name}</h6>
+                            <p class="mb-1"><small>هوية: ${guardian.national_id}</small></p>
+                            <small>جوال: ${guardian.phone} | الحي: ${guardian.district}</small>
+                        </div>
+                        <small class="text-muted">انقر للاختيار</small>
+                    </div>
+                </div>
+            `);
+            resultsDiv.append(item);
+        });
+    }
+    
+    resultsDiv.show();
+}
+
+function selectGuardian(id, name, nationalId, phone, district) {
+    $('#selected_guardian_id').val(id);
+    $('#guardian_search').val(name);
+    $('#guardian_results').hide();
+    
+    const infoDiv = $('#selected_guardian_info');
+    infoDiv.html(`
+        <strong>تم اختيار:</strong> ${name}<br>
+        <small>رقم الهوية: ${nationalId} | الجوال: ${phone} | الحي: ${district}</small>
+    `).show();
+}
+
+function clearGuardianSelection() {
+    $('#guardian_search').val('');
+    $('#selected_guardian_id').val('');
+    $('#guardian_results').hide().empty();
+    $('#selected_guardian_info').hide();
+}
+
+function resetForm() {
+    clearGuardianSelection();
+    $('#aid_type').val('');
+    $('#distribution_date').val('{{ today|date:"Y-m-d" }}');
+    $('#notes').val('');
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}المناطق والأحياء - برنامج المساعدات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-geo-alt me-2"></i>المناطق والأحياء</h4>
+                {% comment %} إخفاء الأزرار عن المندوبين والمراقبين - إبقاء المشرفين فقط {% endcomment %}
+                {% if user.is_superuser %}
+                <div class="btn-group" role="group">
+                    <!-- أزرار Excel -->
+                    <div class="btn-group me-2" role="group">
+                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                        </button>
+                        <ul class="dropdown-menu">
+
+                            <li>
+                                <a class="dropdown-item" href="{% url 'basic_data:download_districts_template' %}">
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>تحميل النموذج
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                    
+                    <!-- زر إضافة حي جديد -->
+                    <a href="{% url 'basic_data:district_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus me-2"></i>إضافة حي جديد
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <!-- شريط البحث والفلاتر -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" class="d-flex">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="البحث بالاسم أو اسم المندوب أو رقم الجوال..." 
+                                       value="{{ search_query }}">
+                                <select name="search_type" class="form-select" style="max-width: 120px;" title="نوع البحث">
+                                    <option value="exact" {% if search_type == 'exact' or not search_type %}selected{% endif %}>دقيق</option>
+                                    <option value="broad" {% if search_type == 'broad' %}selected{% endif %}>شامل</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                {% if search_query %}
+                                    <a href="{% url 'basic_data:districts_list' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <span class="text-muted">إجمالي النتائج: {{ total_count }}</span>
+                    </div>
+                </div>
+
+                <!-- الجدول -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="districtsTable">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>اسم الحي</th>
+                                    <th>اسم مندوب الحي</th>
+                                    <th>رقم جوال المندوب</th>
+                                    <th>تاريخ الإضافة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for district in page_obj %}
+                                    <tr class="text-center">
+                                        <td>
+                                            <strong>{{ district.name }}</strong>
+                                        </td>
+                                        <td>{{ district.representative_name }}</td>
+                                        <td>
+                                            <span class="text-primary fw-bold" style="font-size: 18px;">{{ district.representative_phone|default:"غير محدد" }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ district.created_at|date:"d/m/Y" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <!-- زر العرض متاح للجميع -->
+                                                <a href="{% url 'basic_data:district_detail' district.pk %}" 
+                                                   class="btn btn-sm btn-outline-info" title="عرض">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                
+                                                <!-- أزرار التعديل والحذف للمشرفين فقط -->
+                                                {% if user.is_superuser %}
+                                                <a href="{% url 'basic_data:district_edit' district.pk %}" 
+                                                   class="btn btn-sm btn-outline-warning" title="تعديل">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'basic_data:district_delete' district.pk %}" 
+                                                   class="btn btn-sm btn-outline-danger" title="حذف">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="صفحات النتائج">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">الأولى</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">السابقة</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">التالية</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">الأخيرة</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-geo-alt" style="font-size: 4rem; color: #ccc;"></i>
+                        <h5 class="mt-3 text-muted">لا توجد مناطق أو أحياء</h5>
+                        <p class="text-muted">ابدأ بإضافة أول حي</p>
+                        {% if user.is_superuser %}
+                        <a href="{% url 'basic_data:district_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus me-2"></i>إضافة حي جديد
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تفعيل DataTables للجدول
+    $('#districtsTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+        },
+        "pageLength": 20,
+        "order": [[ 0, "asc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": 4 }
+        ],
+        "dom": 'Bfrtip',
+        "buttons": [
+            {
+                extend: 'excel',
+                text: '<i class="bi bi-file-earmark-excel me-1"></i>تصدير Excel',
+                className: 'btn btn-success btn-sm'
+            }
+        ]
+    });
+});
+</script>
+{% endblock %} 

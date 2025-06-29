@@ -1,0 +1,1 @@
+web: gunicorn mosa3adat_project.wsgi --log-file - 

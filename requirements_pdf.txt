@@ -1,0 +1,27 @@
+# مكتبات تصدير PDF مع دعم الخطوط العربية
+
+# ReportLab - مكتبة إنشاء PDF الأساسية
+reportlab>=4.0.0
+
+# WeasyPrint - تحويل HTML إلى PDF (بديل)
+weasyprint>=60.0
+
+# مكتبات دعم الخطوط
+fonttools>=4.40.0
+
+# مكتبات إضافية لدعم الصور والألوان
+Pillow>=10.0.0
+
+# مكتبة لمعالجة النصوص العربية
+python-bidi>=0.4.2
+arabic-reshaper>=3.0.0
+
+# ملاحظات التثبيت:
+# pip install -r requirements_pdf.txt
+# 
+# في حالة مشاكل التثبيت على Windows:
+# pip install --upgrade pip setuptools wheel
+# pip install reportlab
+# 
+# لتثبيت WeasyPrint على Windows قد تحتاج:
+# pip install weasyprint --find-links https://github.com/Kozea/WeasyPrint/releases 

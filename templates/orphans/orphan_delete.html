@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حذف اليتيم {{ orphan.name }} - نظام المساعدات{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-trash"></i>
+                        تأكيد الحذف
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">هل أنت متأكد من حذف اليتيم: <strong>{{ orphan.name }}</strong>؟</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        تحذير: هذا الإجراء لا يمكن التراجع عنه.
+                    </div>
+
+                    <div class="mt-4">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'orphans:orphans_list' %}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> إلغاء
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> نعم، احذف
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

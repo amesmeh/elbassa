@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if child %}تعديل الطفل - {{ child.name }}{% else %}إضافة طفل جديد{% endif %} - برنامج المساعدات
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.guardian-search-container {
+    position: relative;
+}
+
+.guardian-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.guardian-search-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.guardian-search-item:hover {
+    background-color: #f8f9fa;
+}
+
+.guardian-search-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="bi bi-pencil me-2"></i>{{ title }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'basic_data:basic_data_home' %}">البيانات الأساسية</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'basic_data:children_list' %}">الأبناء</a></li>
+                            {% if child %}
+                                <li class="breadcrumb-item"><a href="{% url 'basic_data:child_detail' child.pk %}">{{ child.name }}</a></li>
+                                <li class="breadcrumb-item active">تعديل</li>
+                            {% else %}
+                                <li class="breadcrumb-item active">إضافة طفل جديد</li>
+                            {% endif %}
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    {% if child %}
+                        <a href="{% url 'basic_data:child_detail' child.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>إلغاء
+                        </a>
+                    {% else %}
+                        <a href="{% url 'basic_data:children_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>العودة
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- نموذج التعديل -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>
+                                <i class="bi bi-person-add me-2"></i>
+                                {% if child %}تعديل الطفل - {{ child.name }}{% else %}إضافة طفل جديد{% endif %}
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" id="childForm">
+                                {% csrf_token %}
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">اسم الطفل <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name" 
+                                               value="{% if child %}{{ child.name }}{% endif %}" 
+                                               placeholder="أدخل اسم الطفل الكامل" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="gender" class="form-label">الجنس <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="gender" name="gender" required>
+                                            <option value="">اختر الجنس</option>
+                                            <option value="ذكر" {% if child and child.gender == "ذكر" %}selected{% endif %}>ذكر</option>
+                                            <option value="أنثى" {% if child and child.gender == "أنثى" %}selected{% endif %}>أنثى</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="birth_date" class="form-label">تاريخ الميلاد <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="birth_date" name="birth_date" 
+                                               value="{% if child %}{{ child.birth_date|date:'Y-m-d' }}{% endif %}" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="national_id" class="form-label">رقم هوية الطفل</label>
+                                        <input type="text" class="form-control" id="national_id" name="national_id" 
+                                               value="{% if child %}{{ child.national_id }}{% endif %}" 
+                                               placeholder="123456789" maxlength="9" pattern="[0-9]{9}">
+                                        <div class="form-text">اختياري - يجب أن يكون 9 أرقام</div>
+                                    </div>
+                                </div>
+
+                                {% if not child %}
+                                <!-- حقول اختيار ولي الأمر - فقط في حالة الإضافة -->
+                                <div class="mb-3 guardian-search-container">
+                                    <label for="guardian_national_id" class="form-label">رقم هوية ولي الأمر <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="guardian_national_id" name="guardian_national_id" 
+                                           placeholder="ابحث برقم الهوية أو الاسم..." required autocomplete="off">
+                                    <div class="guardian-search-results" id="guardianSearchResults"></div>
+                                    <div class="form-text">ابحث عن ولي الأمر برقم الهوية أو الاسم</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="guardian_name" class="form-label">اسم ولي الأمر</label>
+                                    <input type="text" class="form-control" id="guardian_name" name="guardian_name" 
+                                           placeholder="سيظهر اسم ولي الأمر هنا" readonly style="background-color: #f8f9fa;">
+                                    <input type="hidden" id="guardian_id" name="guardian_id">
+                                </div>
+                                {% else %}
+                                <!-- عرض معلومات ولي الأمر في حالة التعديل -->
+                                <div class="alert alert-info">
+                                    <h6><i class="bi bi-info-circle me-2"></i>ولي الأمر</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>الاسم:</strong> {{ child.guardian.name }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>رقم الهوية:</strong> {{ child.guardian.national_id }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{% url 'basic_data:children_list' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
+                                    </a>
+                                    <div>
+                                        {% if child %}
+                                            <a href="{% url 'basic_data:child_detail' child.pk %}" class="btn btn-info me-2">
+                                                <i class="bi bi-eye me-2"></i>عرض التفاصيل
+                                            </a>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check me-2"></i>
+                                            {% if child %}تحديث البيانات{% else %}إضافة الطفل{% endif %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const guardianInput = document.getElementById('guardian_national_id');
+    const guardianNameInput = document.getElementById('guardian_name');
+    const guardianIdInput = document.getElementById('guardian_id');
+    const searchResults = document.getElementById('guardianSearchResults');
+    
+    if (guardianInput) {
+        let searchTimeout;
+        
+        guardianInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            // تنظيف البيانات السابقة
+            guardianNameInput.value = '';
+            guardianIdInput.value = '';
+            
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            // إلغاء البحث السابق
+            clearTimeout(searchTimeout);
+            
+            // إذا كان الإدخال 9 أرقام (رقم هوية كامل)، ابحث فوراً
+            if (/^\d{9}$/.test(query)) {
+                searchGuardians(query);
+            } else {
+                // بحث عادي بعد 300ms
+                searchTimeout = setTimeout(() => {
+                    searchGuardians(query);
+                }, 300);
+            }
+        });
+        
+        // إخفاء النتائج عند النقر خارج الحقل
+        document.addEventListener('click', function(e) {
+            if (!guardianInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+    }
+    
+    function searchGuardians(query) {
+        fetch(`/basic-data/guardians/search/?q=${encodeURIComponent(query)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`خطأ HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.message || data.error);
+                }
+                
+                // إذا كان البحث برقم هوية كامل ووُجد نتيجة واحدة فقط، املأ البيانات تلقائياً
+                if (/^\d{9}$/.test(query) && data.results.length === 1) {
+                    const guardian = data.results[0];
+                    guardianInput.value = guardian.national_id;
+                    guardianNameInput.value = guardian.name;
+                    guardianIdInput.value = guardian.id;
+                    searchResults.style.display = 'none';
+                } else if (data.results.length === 0) {
+                    // إذا كان رقم هوية كامل ولم توجد نتائج
+                    if (/^\d{9}$/.test(query)) {
+                        guardianNameInput.value = 'لم يتم العثور على ولي أمر بهذا الرقم';
+                        guardianNameInput.style.color = '#dc3545'; // أحمر
+                        searchResults.style.display = 'none';
+                    } else {
+                        displaySearchResults(data.results);
+                    }
+                } else {
+                    // عرض النتائج للاختيار منها
+                    displaySearchResults(data.results);
+                }
+            })
+            .catch(error => {
+                console.error('خطأ في البحث:', error);
+                searchResults.style.display = 'none';
+                if (/^\d{9}$/.test(query)) {
+                    guardianNameInput.value = `خطأ: ${error.message}`;
+                    guardianNameInput.style.color = '#dc3545';
+                }
+            });
+    }
+    
+    function displaySearchResults(results) {
+        if (results.length === 0) {
+            searchResults.innerHTML = '<div class="guardian-search-item text-muted">لا توجد نتائج</div>';
+        } else {
+            searchResults.innerHTML = results.map(guardian => `
+                <div class="guardian-search-item" data-id="${guardian.id}" 
+                     data-name="${guardian.name}" data-national-id="${guardian.national_id}">
+                    <strong>${guardian.name}</strong><br>
+                    <small class="text-muted">هوية: ${guardian.national_id}</small>
+                </div>
+            `).join('');
+            
+            // إضافة مستمعات الأحداث للنتائج
+            searchResults.querySelectorAll('.guardian-search-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const nationalId = this.dataset.nationalId;
+                    
+                    guardianInput.value = nationalId;
+                    guardianNameInput.value = name;
+                    guardianNameInput.style.color = ''; // إزالة اللون الأحمر
+                    guardianIdInput.value = id;
+                    
+                    searchResults.style.display = 'none';
+                });
+            });
+        }
+        
+        searchResults.style.display = 'block';
+    }
+    
+    // إعادة تعيين لون النص عند التركيز على حقل الاسم
+    if (guardianNameInput) {
+        guardianNameInput.addEventListener('focus', function() {
+            this.style.color = '';
+        });
+    }
+    
+    // التحقق من صحة رقم الهوية
+    const nationalIdInput = document.getElementById('national_id');
+    
+    if (nationalIdInput) {
+        nationalIdInput.addEventListener('input', function() {
+            const value = this.value;
+            if (value && !/^\d{9}$/.test(value)) {
+                this.setCustomValidity('رقم الهوية يجب أن يكون 9 أرقام');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+    
+    // التحقق من تاريخ الميلاد
+    const birthDateInput = document.getElementById('birth_date');
+    
+    if (birthDateInput) {
+        birthDateInput.addEventListener('change', function() {
+            const birthDate = new Date(this.value);
+            const today = new Date();
+            
+            // التحقق فقط من أن التاريخ ليس في المستقبل
+            if (birthDate > today) {
+                alert('تاريخ الميلاد لا يمكن أن يكون في المستقبل');
+                this.value = '';
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تم إرسال الطلب بنجاح{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        text-align: center;
+        padding: 40px 20px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: #28a745;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        color: white;
+        font-size: 50px;
+    }
+    
+    .success-title {
+        color: #28a745;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+    
+    .success-message {
+        color: #6c757d;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+    
+    .info-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: right;
+    }
+    
+    .info-card h5 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .info-label {
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .info-value {
+        color: #6c757d;
+    }
+    
+    .action-buttons {
+        margin-top: 30px;
+    }
+    
+    .btn {
+        margin: 0 10px;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+        border: 2px solid #007bff;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        border: 2px solid #6c757d;
+    }
+    
+    .btn-secondary:hover {
+        background: #545b62;
+        border-color: #545b62;
+        color: white;
+    }
+    
+    .steps-info {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .step-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        border-right: 4px solid #2196f3;
+    }
+    
+    .step-number {
+        background: #2196f3;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 15px;
+        font-weight: bold;
+    }
+    
+    .step-text {
+        color: #2c3e50;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="success-container">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                
+                <h1 class="success-title">تم إرسال طلب التسجيل بنجاح!</h1>
+                
+                <p class="success-message">
+                    شكراً لك على تقديم طلب التسجيل. تم استلام طلبك وسيتم مراجعته من قبل الإدارة المختصة.
+                    سنقوم بالتواصل معك عبر رقم الجوال المقدم عند الانتهاء من مراجعة الطلب.
+                </p>
+                
+                <!-- معلومات الطلب -->
+                <div class="info-card">
+                    <h5>
+                        <i class="fas fa-info-circle"></i>
+                        معلومات الطلب
+                    </h5>
+                    <div class="info-item">
+                        <span class="info-label">حالة الطلب:</span>
+                        <span class="info-value">
+                            <span class="badge bg-warning">في انتظار المراجعة</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">تاريخ التقديم:</span>
+                        <span class="info-value">{{ request.session.registration_date|default:"اليوم" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">وقت المعالجة المتوقع:</span>
+                        <span class="info-value">1-3 أيام عمل</span>
+                    </div>
+                </div>
+                
+                <!-- خطوات المتابعة -->
+                <div class="steps-info">
+                    <h5>
+                        <i class="fas fa-list-ol"></i>
+                        خطوات المتابعة
+                    </h5>
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-text">مراجعة الطلب من قبل الإدارة المختصة</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-text">التحقق من صحة البيانات والمستندات</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-text">إرسال رسالة تأكيد أو طلب معلومات إضافية</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-text">إضافة البيانات إلى قاعدة البيانات في حالة القبول</div>
+                    </div>
+                </div>
+                
+                <!-- أزرار الإجراءات -->
+                <div class="action-buttons">
+                    <a href="{% url 'citizen_registration:citizen_registration' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        تسجيل مواطن آخر
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i>
+                        العودة للرئيسية
+                    </a>
+                </div>
+                
+                <!-- معلومات التواصل -->
+                <div class="info-card" style="margin-top: 30px;">
+                    <h5>
+                        <i class="fas fa-phone"></i>
+                        معلومات التواصل
+                    </h5>
+                    <p style="color: #6c757d; margin-bottom: 15px;">
+                        في حالة وجود أي استفسارات أو تحتاج إلى تحديث بياناتك، يمكنك التواصل معنا:
+                    </p>
+                    <div class="info-item">
+                        <span class="info-label">رقم الهاتف:</span>
+                        <span class="info-value">+970-XXX-XXXXXXX</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">البريد الإلكتروني:</span>
+                        <span class="info-value">info@example.com</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">ساعات العمل:</span>
+                        <span class="info-value">الأحد - الخميس: 8:00 ص - 4:00 م</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

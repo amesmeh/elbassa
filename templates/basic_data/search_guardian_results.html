@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}نتائج البحث - {{ search_query }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-search me-2"></i>نتائج البحث عن: "{{ search_query }}"</h4>
+                <small class="text-muted">تم العثور على {{ total_found }} ولي أمر</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>اسم ولي الأمر</th>
+                                <th>رقم الهوية</th>
+                                <th>رقم الجوال</th>
+                                <th>الحي</th>
+                                <th>عدد أفراد العائلة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for guardian in guardians %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ guardian.name }}</strong>
+                                        <br><small class="text-muted">{{ guardian.current_job|default:"غير محدد" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ guardian.national_id }}</span>
+                                    </td>
+                                    <td>{{ guardian.phone_number }}</td>
+                                    <td>
+                                        {% if guardian.district %}
+                                            <span class="badge bg-info">{{ guardian.district.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ guardian.family_members_count }}</span>
+                                        <br><small class="text-muted">{{ guardian.children_count }} أطفال + {{ guardian.wives_count }} زوجة</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'basic_data:guardian_detail' guardian.pk %}" 
+                                               class="btn btn-sm btn-outline-info" title="عرض التفاصيل">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'basic_data:guardian_aids_summary' guardian.pk %}" 
+                                               class="btn btn-sm btn-outline-success" title="عرض المساعدات">
+                                                <i class="bi bi-gift"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'basic_data:basic_data_home' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>العودة للرئيسية
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

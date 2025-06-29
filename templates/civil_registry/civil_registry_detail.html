@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ civil_record.name }} - تفاصيل السجل المدني{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user text-primary"></i>
+                        تفاصيل السجل المدني: {{ civil_record.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">البيانات الشخصية</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>الاسم:</strong></td>
+                                    <td>{{ civil_record.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الهوية:</strong></td>
+                                    <td>{{ civil_record.national_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>الجنس:</strong></td>
+                                    <td>
+                                        <span class="badge {% if civil_record.gender == 'M' %}bg-primary{% else %}bg-pink{% endif %}">
+                                            {{ civil_record.get_gender_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>تاريخ الميلاد:</strong></td>
+                                    <td>{{ civil_record.birth_date|date:"Y/m/d" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>العمر:</strong></td>
+                                    <td>{{ civil_record.age }} سنة</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>فئة العمر:</strong></td>
+                                    <td>
+                                        <span class="badge bg-info">{{ civil_record.age_category }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">بيانات السكن والأسرة</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>المحافظة:</strong></td>
+                                    <td>{{ civil_record.get_governorate_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>المدينة:</strong></td>
+                                    <td>{{ civil_record.city }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>عدد أفراد الأسرة:</strong></td>
+                                    <td>
+                                        {% if civil_record.family_members_count %}
+                                            <span class="badge bg-success">{{ civil_record.family_members_count }}</span>
+                                        {% else %}
+                                            <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if civil_record.neighborhood %}
+                                <tr>
+                                    <td><strong>الحي:</strong></td>
+                                    <td>{{ civil_record.neighborhood }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if civil_record.address %}
+                                <tr>
+                                    <td><strong>العنوان:</strong></td>
+                                    <td>{{ civil_record.address }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if civil_record.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">الملاحظات</h6>
+                            <div class="alert alert-light">
+                                {{ civil_record.notes }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'civil_registry:civil_registry_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> العودة إلى القائمة
+                        </a>
+                        <a href="{% url 'civil_registry:civil_record_edit' civil_record.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> تعديل البيانات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

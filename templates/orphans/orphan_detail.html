@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ orphan.name }} - تفاصيل اليتيم{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-person-heart text-info"></i>
+                        تفاصيل اليتيم: {{ orphan.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">البيانات الشخصية</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>الاسم:</strong></td>
+                                    <td>{{ orphan.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الهوية:</strong></td>
+                                    <td>{{ orphan.national_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>الجنس:</strong></td>
+                                    <td>
+                                        <span class="badge {% if orphan.gender == 'M' %}bg-primary{% else %}bg-pink{% endif %}">
+                                            {{ orphan.get_gender_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>تاريخ الميلاد:</strong></td>
+                                    <td>{{ orphan.birth_date|date:"Y/m/d" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>العمر:</strong></td>
+                                    <td>{{ orphan.age }} سنة</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>المرحلة التعليمية:</strong></td>
+                                    <td>{{ orphan.get_education_level_display }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">بيانات الوصي</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>اسم الوصي:</strong></td>
+                                    <td>{{ orphan.guardian_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>صلة القرابة:</strong></td>
+                                    <td>{{ orphan.get_guardian_relationship_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الجوال:</strong></td>
+                                    <td>{{ orphan.phone_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>الحي:</strong></td>
+                                    <td>{{ orphan.district.name|default:"غير محدد" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>عدد الأخوة:</strong></td>
+                                    <td>{{ orphan.total_siblings }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'orphans:orphans_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> العودة إلى القائمة
+                        </a>
+                        <a href="{% url 'orphans:orphan_edit' orphan.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> تعديل البيانات
+                        </a>
+                        <a href="/admin/orphans/orphan/{{ orphan.pk }}/change/" class="btn btn-primary">
+                            <i class="bi bi-gear"></i> تعديل من لوحة الإدارة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

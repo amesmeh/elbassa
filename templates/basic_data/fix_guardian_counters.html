@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إصلاح عدادات أولياء الأمور{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>
+                        إصلاح عدادات أولياء الأمور
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>تحذير</h5>
+                        <p class="mb-2">
+                            ستقوم هذه العملية بإعادة حساب عدادات أولياء الأمور التالية لجميع أولياء الأمور ({{ guardians_count }} ولي أمر):
+                        </p>
+                        <ul class="mb-0">
+                            <li><strong>عدد الأطفال:</strong> سيتم حسابه من الأطفال المسجلين فعلياً</li>
+                            <li><strong>عدد الزوجات:</strong> سيتم حسابه من الزوجات المسجلات فعلياً</li>
+                            <li><strong>إجمالي أفراد العائلة:</strong> سيتم حسابه (1 + عدد الأطفال + عدد الزوجات)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <h6><i class="fas fa-info-circle me-2"></i>متى تحتاج لهذه العملية؟</h6>
+                        <ul class="mb-0">
+                            <li>عند وجود تضارب في العدادات المعروضة</li>
+                            <li>بعد استيراد بيانات من ملفات Excel</li>
+                            <li>عند وجود أخطاء في عدادات أولياء الأمور</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <form method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-sync-alt me-2"></i>
+                                    بدء إصلاح العدادات
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                العودة لقائمة أولياء الأمور
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

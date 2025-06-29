@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - نظام المساعدات{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    .form-section {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+    }
+    .section-title {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #dc3545;
+    }
+    .auto-filled {
+        background-color: #e8f5e8;
+    }
+    .cost-section {
+        background-color: #fff3cd;
+        border: 1px solid #ffecb5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-house-x text-white"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+
+
+                        <!-- قسم بيانات ولي الأمر -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-person-badge"></i>
+                                بيانات ولي الأمر
+                            </h5>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>ملاحظة:</strong> عند إدخال رقم هوية ولي الأمر، سيتم ملء الحقول التالية تلقائياً من البيانات الأساسية.
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.guardian_national_id.id_for_label }}" class="form-label">
+                                        {{ form.guardian_national_id.label }}
+                                    </label>
+                                    {{ form.guardian_national_id }}
+                                    {% if form.guardian_national_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.guardian_national_id.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.guardian_name.id_for_label }}" class="form-label">
+                                        {{ form.guardian_name.label }}
+                                    </label>
+                                    {{ form.guardian_name }}
+                                    {% if form.guardian_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.guardian_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                        {{ form.phone_number.label }}
+                                    </label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.phone_number.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.district.id_for_label }}" class="form-label">
+                                        {{ form.district.label }}
+                                    </label>
+                                    {{ form.district }}
+                                    {% if form.district.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.district.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قسم بيانات العقار -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-house"></i>
+                                بيانات العقار
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.ownership_type.id_for_label }}" class="form-label required">
+                                        {{ form.ownership_type.label }}
+                                    </label>
+                                    {{ form.ownership_type }}
+                                    {% if form.ownership_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.ownership_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.housing_type.id_for_label }}" class="form-label required">
+                                        {{ form.housing_type.label }}
+                                    </label>
+                                    {{ form.housing_type }}
+                                    {% if form.housing_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.housing_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.housing_condition.id_for_label }}" class="form-label required">
+                                        {{ form.housing_condition.label }}
+                                    </label>
+                                    {{ form.housing_condition }}
+                                    {% if form.housing_condition.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.housing_condition.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.construction_type.id_for_label }}" class="form-label required">
+                                        {{ form.construction_type.label }}
+                                    </label>
+                                    {{ form.construction_type }}
+                                    {% if form.construction_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.construction_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.floors_count.id_for_label }}" class="form-label required">
+                                        {{ form.floors_count.label }}
+                                    </label>
+                                    {{ form.floors_count }}
+                                    {% if form.floors_count.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.floors_count.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قسم بيانات الضرر -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                بيانات الضرر
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.damage_date.id_for_label }}" class="form-label required">
+                                        {{ form.damage_date.label }}
+                                    </label>
+                                    {{ form.damage_date }}
+                                    {% if form.damage_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.damage_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.damage_type.id_for_label }}" class="form-label required">
+                                        {{ form.damage_type.label }}
+                                    </label>
+                                    {{ form.damage_type }}
+                                    {% if form.damage_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.damage_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.damage_percentage.id_for_label }}" class="form-label required">
+                                        {{ form.damage_percentage.label }}
+                                    </label>
+                                    {{ form.damage_percentage }}
+                                    {% if form.damage_percentage.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.damage_percentage.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- قسم التكلفة المقدرة -->
+                            <div class="cost-section">
+                                <h6><i class="bi bi-currency-dollar"></i> التكلفة المقدرة</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.estimated_cost_ils.id_for_label }}" class="form-label">
+                                            {{ form.estimated_cost_ils.label }}
+                                        </label>
+                                        {{ form.estimated_cost_ils }}
+                                        {% if form.estimated_cost_ils.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.estimated_cost_ils.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">أدخل التكلفة بالشيكل</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.estimated_cost_usd.id_for_label }}" class="form-label">
+                                            {{ form.estimated_cost_usd.label }}
+                                        </label>
+                                        {{ form.estimated_cost_usd }}
+                                        {% if form.estimated_cost_usd.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.estimated_cost_usd.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">أدخل التكلفة بالدولار</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قسم الملاحظات -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="bi bi-chat-text"></i>
+                                معلومات إضافية
+                            </h5>
+                            <div class="mb-3">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                    {{ form.notes.label }}
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.notes.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- أزرار التحكم -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a href="{% url 'damages:damages_list' %}" class="btn btn-secondary">
+                                            <i class="bi bi-arrow-left"></i> إلغاء
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle"></i>
+                                            {% if damage %}تحديث البيانات{% else %}إضافة الضرر{% endif %}
+                                        </button>
+                                        {% if damage %}
+                                            <a href="{% url 'damages:damage_detail' damage.pk %}" class="btn btn-info">
+                                                <i class="bi bi-eye"></i> عرض التفاصيل
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const guardianNationalIdField = document.getElementById('{{ form.guardian_national_id.id_for_label }}');
+    const guardianNameField = document.getElementById('{{ form.guardian_name.id_for_label }}');
+    const phoneField = document.getElementById('{{ form.phone_number.id_for_label }}');
+    const districtField = document.getElementById('{{ form.district.id_for_label }}');
+    
+    // وظيفة البحث عن ولي الأمر
+    function loadGuardianData(nationalId) {
+        if (nationalId.length === 9) {
+            fetch(`/basic-data/guardian-lookup/?national_id=${nationalId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.found) {
+                        guardianNameField.value = data.name;
+                        if (!phoneField.value) {
+                            phoneField.value = data.phone;
+                        }
+                        if (data.district_id && !districtField.value) {
+                            districtField.value = data.district_id;
+                        }
+                        
+                        // إضافة تأثير بصري للحقول المملوءة تلقائياً
+                        guardianNameField.classList.add('auto-filled');
+                        if (data.phone && !phoneField.dataset.userModified) {
+                            phoneField.classList.add('auto-filled');
+                        }
+                        if (data.district_id) {
+                            districtField.classList.add('auto-filled');
+                        }
+                        
+                        showMessage('تم العثور على بيانات ولي الأمر وملؤها تلقائياً', 'success');
+                    } else {
+                        guardianNameField.value = '';
+                        guardianNameField.classList.remove('auto-filled');
+                        phoneField.classList.remove('auto-filled');
+                        districtField.classList.remove('auto-filled');
+                        
+                        showMessage('لم يتم العثور على ولي الأمر في البيانات الأساسية', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('خطأ في البحث:', error);
+                });
+        }
+    }
+    
+    // ربط الأحداث
+    if (guardianNationalIdField) {
+        guardianNationalIdField.addEventListener('input', function() {
+            loadGuardianData(this.value);
+        });
+    }
+    
+    // تتبع التعديلات اليدوية
+    if (phoneField) {
+        phoneField.addEventListener('input', function() {
+            this.dataset.userModified = 'true';
+            this.classList.remove('auto-filled');
+        });
+    }
+    
+    // وظيفة إظهار الرسائل
+    function showMessage(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-2`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        if (guardianNationalIdField && guardianNationalIdField.parentNode) {
+            guardianNationalIdField.parentNode.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    }
+    
+    // التحقق من صحة النموذج
+    function validateNationalId(field) {
+        const value = field.value;
+        const regex = /^\d{9}$/;
+        
+        if (value && !regex.test(value)) {
+            field.classList.add('is-invalid');
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            return true;
+        }
+    }
+    
+    if (guardianNationalIdField) {
+        guardianNationalIdField.addEventListener('input', function() {
+            validateNationalId(this);
+        });
+    }
+    
+    // منع إرسال النموذج إذا كانت البيانات غير صحيحة
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        if (guardianNationalIdField && guardianNationalIdField.value && !validateNationalId(guardianNationalIdField)) {
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('يرجى التأكد من صحة البيانات المدخلة');
+        }
+    });
+});
+</script>
+{% endblock %} 

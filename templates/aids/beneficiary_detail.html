@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}تفاصيل المستفيد: {{ guardian.name }} - برنامج المساعدات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-person-circle me-2"></i>تفاصيل المستفيد: {{ guardian.name }}</h4>
+                <div>
+                    <a href="{% url 'beneficiaries_list' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-right me-1"></i>العودة للمستفيدين
+                    </a>
+                    <a href="{% url 'distribution_create' %}" class="btn btn-success">
+                        <i class="bi bi-plus me-1"></i>إضافة توزيع جديد
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- معلومات ولي الأمر -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5><i class="bi bi-person me-2"></i>البيانات الشخصية</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>الاسم الكامل:</strong></td>
+                                        <td>{{ guardian.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>رقم الهوية:</strong></td>
+                                        <td><span class="badge bg-secondary">{{ guardian.national_id }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>رقم الجوال:</strong></td>
+                                        <td><i class="bi bi-phone me-1"></i>{{ guardian.phone_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>الحي:</strong></td>
+                                        <td><span class="badge bg-warning">{{ guardian.district.name|default:"غير محدد" }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>الجنس:</strong></td>
+                                        <td>{{ guardian.get_gender_display }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>حالة الإقامة:</strong></td>
+                                        <td>
+                                            {% if guardian.residence_status == 'resident' %}
+                                                <span class="badge bg-success">مقيم</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">نازح</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5><i class="bi bi-bar-chart me-2"></i>إحصائيات الاستفادة</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body">
+                                                <h3>{{ stats.total_benefits }}</h3>
+                                                <small>إجمالي المساعدات</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="card bg-info text-white">
+                                            <div class="card-body">
+                                                <h3>{{ stats.aid_types }}</h3>
+                                                <small>أنواع مختلفة</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <strong>آخر موعد استفادة:</strong><br>
+                                    {% if stats.last_benefit_date %}
+                                        <span class="badge bg-success fs-6">{{ stats.last_benefit_date|date:"d/m/Y" }}</span>
+                                    {% else %}
+                                        <span class="text-muted">لا توجد مساعدات</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- إحصائيات حسب نوع المساعدة -->
+                {% if aid_type_stats %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="bi bi-pie-chart me-2"></i>توزيع المساعدات حسب النوع</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for stat in aid_type_stats %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card border-info">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">{{ stat.aid_type__name }}</h5>
+                                                <h3 class="text-primary">{{ stat.count }}</h3>
+                                                <small class="text-muted">مرة/مرات</small>
+                                                <br>
+                                                <small class="text-muted">آخر مرة: {{ stat.last_date|date:"d/m/Y" }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- قائمة جميع المساعدات -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-list-ul me-2"></i>سجل جميع المساعدات</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if benefits %}
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="benefitsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>نوع المساعدة</th>
+                                            <th>الفئة</th>
+                                            <th>تاريخ الاستفادة</th>
+                                            <th>ملاحظات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for benefit in benefits %}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+                                                <td>
+                                                    <span class="badge bg-info">{{ benefit.aid_type.name }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">{{ benefit.aid_type.get_category_display }}</span>
+                                                </td>
+                                                <td>
+                                                    <i class="bi bi-calendar me-1"></i>{{ benefit.aid_date|date:"d/m/Y" }}
+                                                </td>
+                                                <td>
+                                                    {% if benefit.notes %}
+                                                        {{ benefit.notes|truncatechars:50 }}
+                                                    {% else %}
+                                                        <span class="text-muted">لا توجد ملاحظات</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                                <h5 class="mt-3 text-muted">لا توجد مساعدات</h5>
+                                <p class="text-muted">لم يحصل هذا المستفيد على أي مساعدات حتى الآن</p>
+                                <a href="{% url 'distribution_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus me-2"></i>إضافة توزيع جديد
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- معلومات العائلة -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-people me-2"></i>معلومات العائلة</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>عدد الزوجات:</strong></td>
+                        <td><span class="badge bg-info">{{ guardian.wives_count }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>عدد الأبناء:</strong></td>
+                        <td><span class="badge bg-success">{{ guardian.children_count }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>إجمالي أفراد العائلة:</strong></td>
+                        <td><span class="badge bg-primary">{{ guardian.family_members_count }}</span></td>
+                    </tr>
+                </table>
+                <div class="mt-3">
+                    <a href="{% url 'guardian_detail' guardian.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-eye me-2"></i>عرض تفاصيل العائلة الكاملة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-gear me-2"></i>إجراءات سريعة</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'distribution_create' %}" class="btn btn-success">
+                        <i class="bi bi-plus me-2"></i>إضافة توزيع جديد
+                    </a>
+                    <a href="{% url 'guardian_update' guardian.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil me-2"></i>تعديل بيانات ولي الأمر
+                    </a>
+                    <a href="{% url 'beneficiaries_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-right me-2"></i>العودة لقائمة المستفيدين
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تفعيل DataTables للجدول
+    $('#benefitsTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+        },
+        "pageLength": 10,
+        "order": [[ 3, "desc" ]],
+        "dom": 'Bfrtip',
+        "buttons": [
+            {
+                extend: 'excel',
+                text: '<i class="bi bi-file-earmark-excel me-1"></i>تصدير Excel',
+                className: 'btn btn-success btn-sm'
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="bi bi-file-earmark-pdf me-1"></i>تصدير PDF',
+                className: 'btn btn-danger btn-sm'
+            },
+            {
+                extend: 'print',
+                text: '<i class="bi bi-printer me-1"></i>طباعة',
+                className: 'btn btn-info btn-sm'
+            }
+        ]
+    });
+});
+</script>
+{% endblock %} 

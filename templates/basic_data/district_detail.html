@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ district.name }} - تفاصيل الحي{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-geo-alt me-2"></i>{{ district.name }}</h4>
+                <div>
+                    <a href="{% url 'basic_data:district_edit' district.pk %}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-pencil me-1"></i>تعديل
+                    </a>
+                    <a href="{% url 'basic_data:district_delete' district.pk %}" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash me-1"></i>حذف
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="section-header">
+                    <h5><i class="bi bi-info-circle me-2"></i>بيانات الحي</h5>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">اسم الحي</h6>
+                            <h5 class="mb-0">{{ district.name }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">تاريخ الإضافة</h6>
+                            <p class="mb-0">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ district.created_at|date:"d/m/Y - H:i" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-header">
+                    <h5><i class="bi bi-person me-2"></i>بيانات مندوب الحي</h5>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">اسم المندوب</h6>
+                            <h5 class="mb-0">{{ district.representative_name }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">رقم جوال المندوب</h6>
+                            <h5 class="mb-0">
+                                <span class="badge bg-secondary fs-6">{{ district.representative_phone|default:"غير محدد" }}</span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'basic_data:districts_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
+                    </a>
+                    <a href="{% url 'basic_data:district_edit' district.pk %}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>تعديل البيانات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-people me-2"></i>أولياء الأمور في هذا الحي</h5>
+            </div>
+            <div class="card-body">
+                {% if guardians_count > 0 %}
+                    <div class="stats-card mb-3">
+                        <h3>{{ guardians_count }}</h3>
+                        <p><i class="bi bi-person me-2"></i>ولي أمر</p>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'basic_data:guardians_list' %}?district={{ district.pk }}" class="btn btn-outline-primary">
+                            <i class="bi bi-eye me-2"></i>عرض جميع أولياء الأمور
+                        </a>
+                    </div>
+                    
+                    {% if guardians %}
+                        <hr>
+                        <h6 class="text-muted mb-3">آخر المضافين:</h6>
+                        {% for guardian in guardians|slice:":5" %}
+                            <div class="border rounded p-2 mb-2 bg-light">
+                                <small class="fw-bold">{{ guardian.name }}</small><br>
+                                <small class="text-muted">
+                                    <i class="bi bi-phone me-1"></i>{{ guardian.phone_number }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-person-x" style="font-size: 3rem;"></i>
+                        <p class="mt-2">لا يوجد أولياء أمور في هذا الحي</p>
+                        <a href="{% url 'basic_data:guardian_create' %}?district={{ district.pk }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus me-1"></i>إضافة ولي أمر
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- معلومات إضافية -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle me-2"></i>معلومات إضافية</h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <strong>آخر تحديث:</strong><br>
+                    {{ district.updated_at|date:"d/m/Y - H:i" }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

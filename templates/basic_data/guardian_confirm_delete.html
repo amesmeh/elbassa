@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}حذف ولي الأمر - {{ guardian.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4><i class="bi bi-exclamation-triangle me-2"></i>تأكيد حذف ولي الأمر</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>تحذير!</strong> هذا الإجراء لا يمكن التراجع عنه وسيؤثر على البيانات المرتبطة.
+                </div>
+                
+                <p class="lead">هل أنت متأكد من رغبتك في حذف ولي الأمر التالي؟</p>
+                
+                <!-- بيانات ولي الأمر -->
+                <div class="border rounded p-3 bg-light mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-2">{{ guardian.name }}</h5>
+                            <p class="mb-1"><strong>رقم الهوية:</strong> {{ guardian.national_id }}</p>
+                            <p class="mb-1"><strong>الجوال:</strong> {{ guardian.phone_number }}</p>
+                            <p class="mb-0"><strong>الحي:</strong> 
+                                {% if guardian.district %}
+                                    {{ guardian.district.name }}
+                                {% else %}
+                                    غير محدد
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>الحالة الاجتماعية:</strong> {{ guardian.marital_status }}</p>
+                            <p class="mb-1"><strong>عدد الأبناء:</strong> {{ guardian.children_count }}</p>
+                            <p class="mb-1"><strong>عدد الزوجات:</strong> {{ guardian.wives_count }}</p>
+                            <p class="mb-0"><strong>إجمالي أفراد العائلة:</strong> {{ guardian.family_members_count }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تحذيرات البيانات المرتبطة -->
+                {% if guardian.wives_count > 0 or guardian.children_count > 0 %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <strong>تنبيه مهم:</strong> سيتم حذف البيانات التالية المرتبطة بولي الأمر:
+                        <ul class="mt-2 mb-0">
+                            {% if guardian.wives_count > 0 %}
+                                <li><strong>{{ guardian.wives_count }}</strong> زوجة/زوجات</li>
+                            {% endif %}
+                            {% if guardian.children_count > 0 %}
+                                <li><strong>{{ guardian.children_count }}</strong> طفل/أطفال</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <!-- عرض الزوجات إذا وجدت -->
+                {% if guardian.wives.exists %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-person-heart me-2"></i>الزوجات التي سيتم حذفها:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>اسم الزوجة</th>
+                                        <th>رقم الهوية</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for wife in guardian.wives.all %}
+                                        <tr>
+                                            <td>{{ wife.name }}</td>
+                                            <td>{{ wife.national_id|default:"غير محدد" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- عرض الأبناء إذا وجدوا -->
+                {% if guardian.children.exists %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-people me-2"></i>الأبناء الذين سيتم حذفهم:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>اسم الطفل</th>
+                                        <th>العمر</th>
+                                        <th>الجنس</th>
+                                        <th>رقم الهوية</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for child in guardian.children.all %}
+                                        <tr>
+                                            <td>{{ child.name }}</td>
+                                            <td>{{ child.age }} سنة</td>
+                                            <td>{{ child.gender }}</td>
+                                            <td>{{ child.national_id|default:"غير محدد" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- نموذج التأكيد -->
+                <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'basic_data:guardian_detail' guardian.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>إلغاء
+                        </a>
+                        <div>
+                            <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-list me-2"></i>العودة للقائمة
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>نعم، احذف ولي الأمر وجميع البيانات المرتبطة
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- معلومات إضافية -->
+                <div class="mt-4 p-3 bg-light border rounded">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>ملاحظة:</strong> بعد الحذف، لن يكون بإمكانك استرداد هذه البيانات. 
+                        تأكد من أنك لا تحتاج إلى هذه المعلومات في المستقبل.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

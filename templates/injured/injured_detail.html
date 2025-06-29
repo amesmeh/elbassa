@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ injured.name }} - تفاصيل الجريح{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-bandaid text-warning"></i>
+                        تفاصيل الجريح: {{ injured.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">بيانات الجريح</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>الاسم:</strong></td>
+                                    <td>{{ injured.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الهوية:</strong></td>
+                                    <td>{{ injured.national_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>تاريخ الإصابة:</strong></td>
+                                    <td>{{ injured.injury_date|date:"Y/m/d" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>نوع الإصابة:</strong></td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            {{ injured.get_injury_type_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">بيانات ولي الأمر</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>اسم ولي الأمر:</strong></td>
+                                    <td>{{ injured.guardian_name|default:"غير محدد" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم هوية ولي الأمر:</strong></td>
+                                    <td>{{ injured.guardian_national_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الجوال:</strong></td>
+                                    <td>{{ injured.guardian_phone|default:"غير محدد" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>الحي:</strong></td>
+                                    <td>{{ injured.neighborhood|default:"غير محدد" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if injured.injury_description %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">وصف الإصابة</h6>
+                            <div class="alert alert-light">
+                                {{ injured.injury_description }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if injured.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">الملاحظات</h6>
+                            <div class="alert alert-light">
+                                {{ injured.notes }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'injured:injured_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> العودة إلى القائمة
+                        </a>
+                        <a href="{% url 'injured:injured_edit' injured.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> تعديل البيانات
+                        </a>
+                        <a href="/admin/injured/injured/{{ injured.pk }}/change/" class="btn btn-primary">
+                            <i class="bi bi-gear"></i> تعديل من لوحة الإدارة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

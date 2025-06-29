@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="bi bi-person-heart me-2"></i>{{ title }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'basic_data:basic_data_home' %}">البيانات الأساسية</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'basic_data:wives_list' %}">الزوجات</a></li>
+                            <li class="breadcrumb-item active">{{ wife.name }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'basic_data:wife_edit' wife.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil me-2"></i>تعديل
+                    </a>
+                    <a href="{% url 'basic_data:wife_delete' wife.pk %}" class="btn btn-danger"
+                       onclick="return confirm('هل أنت متأكد من حذف الزوجة {{ wife.name }}؟')">
+                        <i class="bi bi-trash me-2"></i>حذف
+                    </a>
+                    <a href="{% url 'basic_data:wives_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>العودة للقائمة
+                    </a>
+                </div>
+            </div>
+
+            <!-- بيانات الزوجة -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-person-heart me-2"></i>بيانات الزوجة</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">اسم الزوجة</label>
+                                    <div class="fw-bold">{{ wife.name }}</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">رقم الهوية</label>
+                                    <div class="fw-bold">
+                                        {% if wife.national_id %}
+                                            <span class="badge bg-secondary">{{ wife.national_id }}</span>
+                                        {% else %}
+                                            <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">تاريخ الإضافة</label>
+                                    <div class="fw-bold">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        {{ wife.created_at|date:"d/m/Y H:i" }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">آخر تحديث</label>
+                                    <div class="fw-bold">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ wife.updated_at|date:"d/m/Y H:i" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- بيانات ولي الأمر -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-person me-2"></i>ولي الأمر</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <div class="mb-2">
+                                <strong>{{ wife.guardian.name }}</strong>
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge bg-info">{{ wife.guardian.national_id }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">{{ wife.guardian.current_job|default:"غير محدد" }}</small>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">{{ wife.guardian.phone_number|default:"غير محدد" }}</small>
+                            </div>
+                            <div class="d-grid">
+                                <a href="{% url 'basic_data:guardian_detail' wife.guardian.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>عرض تفاصيل ولي الأمر
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- معلومات إضافية -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5><i class="bi bi-info-circle me-2"></i>معلومات إضافية</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>الحي:</strong>
+                                {% if wife.guardian.district %}
+                                    <span class="badge bg-success">{{ wife.guardian.district.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">غير محدد</span>
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <strong>حالة الإقامة:</strong>
+                                <span class="badge bg-warning">{{ wife.guardian.get_residence_status_display }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>عدد أفراد العائلة:</strong>
+                                <span class="badge bg-primary">{{ wife.guardian.family_members_count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

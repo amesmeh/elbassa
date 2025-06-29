@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل طلب التسجيل - {{ request.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .detail-header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .detail-header .status-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        margin-top: 15px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+    }
+    
+    .info-section {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .info-section h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .info-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-right: 4px solid #3498db;
+    }
+    
+    .info-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        font-weight: bold;
+    }
+    
+    .children-section, .wives-section {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 15px;
+    }
+    
+    .section-title {
+        color: #2c3e50;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .person-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .person-info {
+        flex: 1;
+    }
+    
+    .person-name {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .person-details {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .actions-section {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 25px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+        border-color: #218838;
+        color: white;
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+    
+    .btn-danger:hover {
+        background: #c82333;
+        border-color: #c82333;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        border-color: #6c757d;
+    }
+    
+    .btn-secondary:hover {
+        background: #545b62;
+        border-color: #545b62;
+        color: white;
+    }
+    
+    .timeline {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 25px;
+        margin-top: 20px;
+    }
+    
+    .timeline-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-right: 4px solid #3498db;
+    }
+    
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 15px;
+        font-size: 1.2rem;
+    }
+    
+    .timeline-content {
+        flex: 1;
+    }
+    
+    .timeline-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .timeline-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- رأس الصفحة -->
+    <div class="card mb-4">
+        <div class="card-body text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;">
+            <h1 class="mb-3">
+                <i class="fas fa-user"></i>
+                {{ request.name }}
+            </h1>
+            <span class="badge bg-light text-dark fs-6 px-4 py-2">
+                {% if request.status == 'pending' %}
+                    <i class="fas fa-clock"></i> في انتظار المراجعة
+                {% elif request.status == 'approved' %}
+                    <i class="fas fa-check"></i> مقبول
+                {% elif request.status == 'rejected' %}
+                    <i class="fas fa-times"></i> مرفوض
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- البيانات الأساسية -->
+        <div class="col-lg-8">
+            <!-- البيانات الأساسية -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle"></i>
+                        البيانات الأساسية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>الاسم الكامل:</strong> {{ request.name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>رقم الهوية:</strong> {{ request.national_id }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>رقم الجوال:</strong> {{ request.phone_number }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>الجنس:</strong> {{ request.get_gender_display }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>المهنة:</strong> {{ request.current_job|default:"غير محدد" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>الحي:</strong> {{ request.district.name }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الحالة الاجتماعية -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heart"></i>
+                        الحالة الاجتماعية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>الحالة الاجتماعية:</strong> {{ request.get_marital_status_display }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>حالة الإقامة:</strong> {{ request.get_residence_status_display }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>عدد الأبناء:</strong> {{ request.children_count }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>عدد الزوجات:</strong> {{ request.wives_count }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>نوع السكن:</strong> {{ request.get_housing_type_display }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- بيانات الأبناء -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-child"></i>
+                        بيانات الأبناء
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if request.children.all %}
+                        {% for child in request.children.all %}
+                            <div class="border rounded p-3 mb-2">
+                                <strong>{{ child.name }}</strong><br>
+                                رقم الهوية: {{ child.national_id|default:"غير محدد" }} | 
+                                تاريخ الميلاد: {{ child.birth_date|date:"Y-m-d"|default:"غير محدد" }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">لا توجد بيانات أبناء</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- بيانات الزوجات -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-female"></i>
+                        بيانات الزوجات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if request.wives.all %}
+                        {% for wife in request.wives.all %}
+                            <div class="border rounded p-3 mb-2">
+                                <strong>{{ wife.name }}</strong><br>
+                                رقم الهوية: {{ wife.national_id|default:"غير محدد" }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">لا توجد بيانات زوجات</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- الشريط الجانبي -->
+        <div class="col-lg-4">
+            <!-- معلومات الطلب -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        معلومات الطلب
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>رقم الطلب:</strong> #{{ request.id }}</p>
+                    <p><strong>تاريخ التقديم:</strong> {{ request.created_at|date:"Y-m-d H:i" }}</p>
+                    <p><strong>آخر تحديث:</strong> {{ request.updated_at|date:"Y-m-d H:i" }}</p>
+                    {% if request.approved_by %}
+                        <p><strong>تم القبول بواسطة:</strong> {{ request.approved_by.get_full_name|default:request.approved_by.username }}</p>
+                        <p><strong>تاريخ القبول:</strong> {{ request.approved_at|date:"Y-m-d H:i" }}</p>
+                    {% endif %}
+                    {% if request.rejected_by %}
+                        <p><strong>تم الرفض بواسطة:</strong> {{ request.rejected_by.get_full_name|default:request.rejected_by.username }}</p>
+                        <p><strong>تاريخ الرفض:</strong> {{ request.rejected_at|date:"Y-m-d H:i" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- الإجراءات -->
+            {% if request.status == 'pending' %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs"></i>
+                            إجراءات الطلب
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <button type="button" class="btn btn-success mb-2 w-100" onclick="approveRequest({{ request.id }})">
+                            <i class="fas fa-check"></i> قبول الطلب
+                        </button>
+                        <button type="button" class="btn btn-danger w-100" onclick="rejectRequest({{ request.id }})">
+                            <i class="fas fa-times"></i> رفض الطلب
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- أزرار التنقل -->
+    <div class="text-center mt-4">
+        <a href="{% url 'citizen_registration:registration_requests_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة للقائمة
+        </a>
+        <a href="{% url 'citizen_registration:citizen_registration' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> طلب تسجيل جديد
+        </a>
+    </div>
+</div>
+
+<!-- Modal لرفض الطلب -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">رفض طلب التسجيل</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm">
+                    <div class="mb-3">
+                        <label for="rejectNotes" class="form-label">سبب الرفض</label>
+                        <textarea class="form-control" id="rejectNotes" rows="4" 
+                                  placeholder="أدخل سبب رفض الطلب..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">رفض الطلب</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentRequestId = null;
+
+function approveRequest(requestId) {
+    if (confirm('هل أنت متأكد من قبول هذا الطلب؟ سيتم إنشاء ولي الأمر تلقائياً.')) {
+        fetch(`/citizen-registration/approve/${requestId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('حدث خطأ أثناء قبول الطلب');
+        });
+    }
+}
+
+function rejectRequest(requestId) {
+    currentRequestId = requestId;
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
+}
+
+function confirmReject() {
+    const notes = document.getElementById('rejectNotes').value;
+    
+    if (!notes.trim()) {
+        alert('يرجى إدخال سبب الرفض');
+        return;
+    }
+    
+    fetch(`/citizen-registration/reject/${currentRequestId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ notes: notes })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('حدث خطأ أثناء رفض الطلب');
+    });
+}
+
+// إضافة CSRF token للصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfToken) {
+        const meta = document.createElement('meta');
+        meta.name = 'csrfmiddlewaretoken';
+        meta.content = '{{ csrf_token }}';
+        document.head.appendChild(meta);
+    }
+});
+</script>
+{% endblock %} 

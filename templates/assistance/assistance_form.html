@@ -1,0 +1,496 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+        padding: 12px 15px;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border: none;
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+    .btn-secondary {
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+    .search-results {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        position: absolute;
+        width: 100%;
+        z-index: 1000;
+        display: none;
+    }
+    .search-result-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    .beneficiary-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+        border-left: 4px solid #007bff;
+    }
+    .beneficiary-info h6 {
+        color: #007bff;
+        margin-bottom: 8px;
+    }
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+    .info-label {
+        font-weight: 600;
+    }
+    .info-value {
+        color: #6c757d;
+    }
+    
+    /* تكبير خط رقم الهوية */
+    #id_national_id {
+        font-size: 1.3em !important;
+        font-weight: bold !important;
+        font-family: 'Courier New', monospace !important;
+        letter-spacing: 1px !important;
+    }
+    
+    /* العنوان البسيط */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .page-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .page-header p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-hands-helping"></i>
+            برنامج المساعدات - قطاع غزة
+        </h1>
+        <p>
+            {% if assistance %}تعديل مساعدة: {{ assistance.beneficiary_name }}{% else %}إضافة مساعدة جديدة{% endif %}
+        </p>
+    </div>
+
+    <!-- Action Button -->
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <a href="{% url 'assistance:assistance_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-right"></i> العودة للقائمة
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="post" id="assistance-form">
+                    {% csrf_token %}
+                    
+                    <!-- معلومات المستفيد -->
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3">
+                            <i class="fas fa-user"></i> معلومات المستفيد
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group position-relative">
+                                    <label class="form-label required">اسم المستفيد</label>
+                                    {{ form.beneficiary_name }}
+                                    <div class="search-results" id="name-search-results"></div>
+                                    {% if form.beneficiary_name.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.beneficiary_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group position-relative">
+                                    <label class="form-label required">رقم الهوية</label>
+                                    {{ form.national_id }}
+                                    <div class="search-results" id="id-search-results"></div>
+                                    {% if form.national_id.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.national_id.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">عدد أفراد الأسرة</label>
+                                    {{ form.family_members_count }}
+                                    {% if form.family_members_count.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.family_members_count.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">اسم الحي</label>
+                                    {{ form.district_name }}
+                                    {% if form.district_name.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.district_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- عرض معلومات المستفيد -->
+                        <div class="beneficiary-info" id="beneficiary-info" style="display: none;">
+                            <h6><i class="fas fa-info-circle"></i> معلومات المستفيد من قاعدة البيانات</h6>
+                            <div id="beneficiary-details"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- تفاصيل المساعدة -->
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3">
+                            <i class="fas fa-gift"></i> تفاصيل المساعدة
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required">نوع المساعدة</label>
+                                    {{ form.assistance_type }}
+                                    <datalist id="assistance-types-suggestions">
+                                        {% for assistance_type in assistance_types %}
+                                            <option value="{{ assistance_type }}">
+                                        {% endfor %}
+                                        <!-- اقتراحات شائعة -->
+                                        <option value="مواد غذائية">
+                                        <option value="مساعدة نقدية">
+                                        <option value="أدوية">
+                                        <option value="ملابس">
+                                        <option value="أجهزة طبية">
+                                        <option value="وقود">
+                                        <option value="مواد تنظيف">
+                                        <option value="كوبونات">
+                                    </datalist>
+                                    {% if form.assistance_type.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.assistance_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required">الكمية/المبلغ</label>
+                                    {{ form.quantity }}
+                                    {% if form.quantity.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.quantity.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required">تاريخ المساعدة</label>
+                                    {{ form.assistance_date }}
+                                    {% if form.assistance_date.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.assistance_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">ملاحظات</label>
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.notes.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أزرار الإجراءات -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> 
+                            {% if assistance %}حفظ التعديلات{% else %}حفظ المساعدة{% endif %}
+                        </button>
+                        <a href="{% url 'assistance:assistance_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// متغيرات البحث
+let searchTimeout;
+const SEARCH_DELAY = 300; // مللي ثانية
+
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.querySelector('#id_beneficiary_name');
+    const idInput = document.querySelector('#id_national_id');
+    const nameResults = document.getElementById('name-search-results');
+    const idResults = document.getElementById('id-search-results');
+
+    // البحث بالاسم
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            if (query.length >= 2) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchBeneficiaries(query, 'name', nameResults);
+                }, SEARCH_DELAY);
+            } else {
+                nameResults.style.display = 'none';
+            }
+        });
+    }
+
+    // البحث برقم الهوية
+    if (idInput) {
+        idInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            if (query.length >= 3) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchBeneficiaries(query, 'id', idResults);
+                }, SEARCH_DELAY);
+            } else {
+                idResults.style.display = 'none';
+            }
+        });
+    }
+
+    // إخفاء النتائج عند النقر خارجها
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-results') && !e.target.closest('input')) {
+            nameResults.style.display = 'none';
+            idResults.style.display = 'none';
+        }
+    });
+
+    // تحقق من وجود بيانات للتكرار
+    const urlParams = new URLSearchParams(window.location.search);
+    const copyId = urlParams.get('copy');
+    if (copyId && idInput.value) {
+        searchForBeneficiary(idInput.value);
+    }
+});
+
+function searchBeneficiaries(query, type, resultsContainer) {
+    const url = `/assistance/beneficiary-search/?${type === 'name' ? 'name' : 'national_id'}=${encodeURIComponent(query)}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            displaySearchResults(data.results || [], resultsContainer);
+        })
+        .catch(error => {
+            console.error('خطأ في البحث:', error);
+            resultsContainer.style.display = 'none';
+        });
+}
+
+function displaySearchResults(results, container) {
+    if (results.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = '';
+    results.forEach(result => {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.innerHTML = `
+            <div><strong>${result.name}</strong></div>
+            <div class="small text-muted">هوية: ${result.national_id}</div>
+            ${result.family_members_count ? `<div class="small text-muted">أفراد الأسرة: ${result.family_members_count}</div>` : ''}
+        `;
+        
+        item.addEventListener('click', function() {
+            selectBeneficiary(result);
+            container.style.display = 'none';
+        });
+        
+        container.appendChild(item);
+    });
+    
+    container.style.display = 'block';
+}
+
+function selectBeneficiary(beneficiary) {
+    // ملء الحقول
+    document.getElementById('id_beneficiary_name').value = beneficiary.name;
+    document.getElementById('id_national_id').value = beneficiary.national_id;
+    
+    if (beneficiary.family_members_count) {
+        document.getElementById('id_family_members_count').value = beneficiary.family_members_count;
+    }
+    
+    if (beneficiary.district_name) {
+        document.getElementById('id_district_name').value = beneficiary.district_name;
+    }
+
+    // عرض معلومات إضافية
+    showBeneficiaryInfo(beneficiary);
+}
+
+function searchForBeneficiary(nationalId) {
+    if (!nationalId) return;
+    
+    fetch(`/assistance/beneficiary-search/?national_id=${encodeURIComponent(nationalId)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                const beneficiary = data.results[0];
+                showBeneficiaryInfo(beneficiary);
+                
+                // ملء الحقول إذا كانت فارغة
+                if (!document.getElementById('id_beneficiary_name').value && beneficiary.name) {
+                    document.getElementById('id_beneficiary_name').value = beneficiary.name;
+                }
+                if (beneficiary.family_members_count && !document.getElementById('id_family_members_count').value) {
+                    document.getElementById('id_family_members_count').value = beneficiary.family_members_count;
+                }
+                if (beneficiary.district_name && !document.getElementById('id_district_name').value) {
+                    document.getElementById('id_district_name').value = beneficiary.district_name;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('خطأ في البحث:', error);
+        });
+}
+
+function showBeneficiaryInfo(beneficiary) {
+    const infoContainer = document.getElementById('beneficiary-info');
+    const detailsContainer = document.getElementById('beneficiary-details');
+    
+    let detailsHTML = '';
+    
+    if (beneficiary.source) {
+        detailsHTML += `<div class="info-item"><span class="info-label">المصدر:</span><span class="info-value">${beneficiary.source}</span></div>`;
+    }
+    
+    if (beneficiary.total_assistances !== undefined) {
+        detailsHTML += `<div class="info-item"><span class="info-label">عدد المساعدات السابقة:</span><span class="info-value">${beneficiary.total_assistances}</span></div>`;
+    }
+    
+    if (beneficiary.last_assistance_date) {
+        detailsHTML += `<div class="info-item"><span class="info-label">آخر مساعدة:</span><span class="info-value">${beneficiary.last_assistance_date}</span></div>`;
+    }
+    
+    if (beneficiary.phone) {
+        detailsHTML += `<div class="info-item"><span class="info-label">الهاتف:</span><span class="info-value">${beneficiary.phone}</span></div>`;
+    }
+    
+    if (beneficiary.address) {
+        detailsHTML += `<div class="info-item"><span class="info-label">العنوان:</span><span class="info-value">${beneficiary.address}</span></div>`;
+    }
+
+    if (detailsHTML) {
+        detailsContainer.innerHTML = detailsHTML;
+        infoContainer.style.display = 'block';
+    } else {
+        infoContainer.style.display = 'none';
+    }
+}
+
+// تحسين تجربة المستخدم - التركيز التلقائي
+document.addEventListener('DOMContentLoaded', function() {
+    const firstInput = document.querySelector('#id_beneficiary_name');
+    if (firstInput && !firstInput.value) {
+        firstInput.focus();
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block title %}الزوجات - برنامج المساعدات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-person-hearts me-2"></i>الزوجات</h4>
+                {% comment %} إخفاء الأزرار عن المندوبين والمراقبين - إبقاء المشرفين فقط {% endcomment %}
+                {% if user.is_superuser %}
+                <div class="d-flex gap-2">
+                    <!-- قائمة Excel -->
+                    <div class="dropdown">
+                        <button class="btn btn-success dropdown-toggle" type="button" id="excelDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-excel me-2"></i>Excel
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="excelDropdown">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                                    <i class="bi bi-upload me-2"></i>استيراد Excel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'basic_data:download_wives_template' %}">
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>تحميل النموذج
+                                </a>
+                            </li>
+                            {% if 'import_errors' in request.session %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'basic_data:download_import_errors' %}">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>تحميل ملف الأخطاء
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'basic_data:export_wives_excel' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                    <i class="bi bi-download me-2"></i>تصدير البيانات الحالية
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- قائمة الترحيل -->
+                    {% if selected_guardian %}
+                    <div class="dropdown">
+                        <button class="btn btn-warning dropdown-toggle" type="button" id="migrateDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-arrow-right-circle me-2"></i>ترحيل
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="migrateDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'basic_data:migrate_all_wives_to_guardian' selected_guardian %}"
+                                   onclick="return confirm('هل أنت متأكد من ترحيل جميع زوجات هذا ولي الأمر إلى ولي أمر جديد؟')">
+                                    <i class="bi bi-people-fill me-2"></i>ترحيل جميع الزوجات
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'basic_data:wife_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus me-2"></i>إضافة زوجة جديدة
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <!-- شريط البحث والفلاتر -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" class="d-flex">
+                            {% for key, value in request.GET.items %}
+                                {% if key != 'search' and key != 'search_type' %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="البحث بالاسم أو رقم الهوية أو اسم ولي الأمر..." 
+                                       value="{{ search_query }}">
+                                <select name="search_type" class="form-select" style="max-width: 120px;" title="نوع البحث">
+                                    <option value="exact" {% if search_type == 'exact' or not search_type %}selected{% endif %}>دقيق</option>
+                                    <option value="broad" {% if search_type == 'broad' %}selected{% endif %}>شامل</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                {% if search_query %}
+                                    <a href="{% url 'basic_data:wives_list' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="GET" class="row g-2">
+                            {% if search_query %}
+                                <input type="hidden" name="search" value="{{ search_query }}">
+                            {% endif %}
+                            {% if search_type %}
+                                <input type="hidden" name="search_type" value="{{ search_type }}">
+                            {% endif %}
+                            
+                            <div class="col-md-6">
+                                <select name="guardian" class="form-select">
+                                    <option value="">جميع أولياء الأمور</option>
+                                    {% for guardian in guardians %}
+                                        <option value="{{ guardian.pk }}" 
+                                                {% if selected_guardian == guardian.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ guardian.name }} - {{ guardian.national_id }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-funnel me-1"></i>تطبيق الفلاتر
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- إحصائيات سريعة -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ total_count }}</h5>
+                                <small>إجمالي الزوجات</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ guardians_with_wives_count }}</h5>
+                                <small>أولياء أمور متزوجون</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ wives_with_id_count }}</h5>
+                                <small>زوجات لديهن هوية</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ wives_without_id_count }}</h5>
+                                <small>زوجات بدون هوية</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الجدول -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="wivesTable">
+                            <thead>
+                                <tr>
+                                    <th>اسم الزوجة</th>
+                                    <th>رقم الهوية</th>
+                                    <th>ولي الأمر</th>
+                                    <th>رقم هوية ولي الأمر</th>
+                                    <th>الحي</th>
+                                    <th>تاريخ الإضافة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for wife in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ wife.name }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if wife.national_id %}
+                                                <span class="badge bg-secondary">{{ wife.national_id }}</span>
+                                            {% else %}
+                                                <span class="text-muted">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'basic_data:guardian_detail' wife.guardian.pk %}" class="text-decoration-none">
+                                                <strong>{{ wife.guardian.name }}</strong>
+                                            </a>
+                                            <br><small class="text-muted">{{ wife.guardian.national_id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ wife.guardian.national_id }}</span>
+                                        </td>
+                                        <td>
+                                            {% if wife.guardian.district %}
+                                                <span class="badge bg-success">{{ wife.guardian.district.name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ wife.created_at|date:"d/m/Y" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <!-- زر العرض متاح للجميع -->
+                                                <a href="{% url 'basic_data:wife_detail' wife.pk %}" 
+                                                   class="btn btn-sm btn-outline-info" title="عرض تفاصيل الزوجة">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                
+                                                <!-- أزرار التعديل والحذف للمشرفين فقط -->
+                                                {% if user.is_superuser %}
+                                                <a href="{% url 'basic_data:wife_edit' wife.pk %}" 
+                                                   class="btn btn-sm btn-outline-warning" title="تعديل بيانات الزوجة">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'basic_data:wife_delete' wife.pk %}" 
+                                                   class="btn btn-sm btn-outline-danger" title="حذف الزوجة"
+                                                   onclick="return confirm('هل أنت متأكد من حذف الزوجة {{ wife.name }}؟')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="صفحات النتائج">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}">الأولى</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}">السابقة</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}">التالية</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}">الأخيرة</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">لا توجد زوجات</h5>
+                        <p class="text-muted">لم يتم العثور على أي زوجات في النظام</p>
+                        {% if user.is_superuser %}
+                        <a href="{% url 'basic_data:guardian_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus me-2"></i>إضافة ولي أمر جديد
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="bi bi-upload me-2"></i>استيراد الزوجات من Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form method="POST" action="{% url 'basic_data:import_wives_excel' %}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>تعليمات مهمة:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>تأكد من أن الملف بصيغة .xlsx</li>
+                            <li>يجب أن تحتوي البيانات على: اسم الزوجة، رقم الهوية (اختياري)، رقم هوية ولي الأمر</li>
+                            <li>تأكد من وجود ولي الأمر في النظام قبل الاستيراد</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">اختر ملف Excel:</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>استيراد البيانات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// تحسين تجربة المستخدم
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثيرات hover للجدول
+    const tableRows = document.querySelectorAll('#wivesTable tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %} 

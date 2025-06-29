@@ -1,0 +1,434 @@
+/* نظام التنسيق الديناميكي */
+
+/* زر التنسيق */
+#formatButton {
+    margin-left: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+#formatButton:hover {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* نافذة التنسيق */
+#formatModal .modal-content {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+#formatModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+#formatModal .modal-header .btn-close {
+    filter: invert(1);
+}
+
+/* تحكم حجم الخط وعرض الأعمدة */
+.form-range {
+    background: linear-gradient(to right, #667eea, #764ba2);
+    height: 8px;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+.form-range::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.form-range::-webkit-slider-thumb:hover {
+    background: #5a6fd8;
+    transform: scale(1.1);
+}
+
+.form-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* تحسين مظهر القيم */
+.badge {
+    font-size: 0.9em;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* أزرار التحكم */
+.btn-group .btn-check:checked + .btn {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+/* تحكم الأعمدة */
+#columnsControl .form-check {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+#columnsControl .form-check:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* تحسين مظهر البطاقات */
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* تحسين مظهر النماذج */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+/* تحسين التخطيط */
+.d-flex.align-items-center {
+    gap: 10px;
+}
+
+/* تأثيرات الانتقال */
+.table {
+    transition: all 0.3s ease;
+}
+
+.table th,
+.table td {
+    transition: all 0.3s ease;
+}
+
+/* تحسين الاستجابة */
+@media (max-width: 768px) {
+    #formatModal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    #formatModal .modal-content {
+        border-radius: 10px;
+    }
+    
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .form-range {
+        width: 100%;
+    }
+    
+    .badge {
+        min-width: 50px;
+        font-size: 0.8em;
+    }
+}
+
+/* تأثيرات إضافية */
+.table-hover tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+}
+
+/* أيقونات مخصصة */
+.bi-palette::before {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bi-gear::before {
+    color: #667eea;
+}
+
+.bi-eye::before {
+    color: #28a745;
+}
+
+.bi-columns::before {
+    color: #17a2b8;
+}
+
+.bi-table::before {
+    color: #6f42c1;
+}
+
+/* تحسين مظهر النماذج */
+.form-check-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+.form-range:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+/* تأثيرات الأزرار */
+.btn-outline-secondary:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+.btn-primary:hover {
+    background-color: #5a6fd8;
+    border-color: #5a6fd8;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* تحسين مظهر المعاينة */
+.table-responsive {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* تحسين التباعد */
+.mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mt-3 {
+    margin-top: 1.5rem !important;
+}
+
+/* تحكم الأعمدة الفردية */
+.column-control-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.column-control-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.column-control-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0;
+}
+
+.column-control-card .card-header h6 {
+    color: #495057;
+    font-weight: 600;
+}
+
+/* تحسين مظهر المفاتيح */
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* تحسين مظهر المنزلقات الفردية */
+.column-control-card .form-range {
+    background: linear-gradient(to right, #17a2b8, #6f42c1);
+}
+
+.column-control-card .form-range::-webkit-slider-thumb {
+    background: #17a2b8;
+}
+
+.column-control-card .form-range::-webkit-slider-thumb:hover {
+    background: #138496;
+}
+
+/* تحسين مظهر الشارات */
+.badge.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+/* أيقونات خاصة */
+.bi-sliders::before {
+    color: #6f42c1;
+}
+
+.bi-layout-text-window::before {
+    color: #17a2b8;
+}
+
+/* تحسين التخطيط للتحكم الفردي */
+#individualColumnsControl .card-body {
+    padding: 1rem;
+}
+
+#individualColumnsControl .form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+/* تأثيرات انتقال للعناصر */
+.column-control-card .form-range,
+.column-control-card .form-select,
+.column-control-card .form-check-input {
+    transition: all 0.3s ease;
+}
+
+.column-control-card .form-select:focus {
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 0.25rem rgba(23, 162, 184, 0.25);
+}
+
+/* تحسين الاستجابة للتحكم الفردي */
+@media (max-width: 768px) {
+    .column-control-card {
+        margin-bottom: 1rem;
+    }
+    
+    .column-control-card .row .col-md-6 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .column-control-card .card-header h6 {
+        font-size: 0.9rem;
+    }
+}
+
+/* تحسينات أزرار التنسيق الشاملة */
+.format-table-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.format-table-btn:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a3d91);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+.format-table-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* تحسين مظهر حاويات أزرار التنسيق */
+.table-format-controls {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+/* تحسين مظهر الجداول مع نظام التنسيق */
+.table-with-formatting {
+    transition: all 0.3s ease;
+}
+
+.table-with-formatting:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* تحسين مظهر card-header مع أزرار التنسيق */
+.card-header .format-table-btn {
+    margin-left: auto;
+}
+
+.card-header .d-flex.gap-2 {
+    align-items: center;
+}
+
+/* تحسين الاستجابة للأزرار */
+@media (max-width: 768px) {
+    .format-table-btn {
+        font-size: 0.8rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .format-table-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .table-format-controls {
+        text-align: center;
+    }
+}
+
+/* تأثيرات خاصة للجداول الكبيرة */
+.table-responsive .format-table-btn {
+    position: sticky;
+    top: 10px;
+    z-index: 10;
+}
+
+/* تحسين مظهر الأيقونات */
+.format-table-btn .bi-palette {
+    background: linear-gradient(135deg, #ffd700, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+} 

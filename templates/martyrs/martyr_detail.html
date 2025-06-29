@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ martyr.name }} - تفاصيل الشهيد{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-star text-warning"></i>
+                        تفاصيل الشهيد: {{ martyr.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">بيانات الشهيد</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>الاسم:</strong></td>
+                                    <td>{{ martyr.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الهوية:</strong></td>
+                                    <td>{{ martyr.national_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>تاريخ الاستشهاد:</strong></td>
+                                    <td>{{ martyr.martyrdom_date|date:"Y/m/d" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>سنة الاستشهاد:</strong></td>
+                                    <td>{{ martyr.martyrdom_year }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>الحي:</strong></td>
+                                    <td>{{ martyr.district.name|default:"غير محدد" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">بيانات الوكيل</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>اسم الوكيل:</strong></td>
+                                    <td>{{ martyr.agent_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم هوية الوكيل:</strong></td>
+                                    <td>{{ martyr.agent_national_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>رقم الجوال:</strong></td>
+                                    <td>{{ martyr.agent_phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>صلة القرابة:</strong></td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ martyr.get_relationship_to_martyr_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if martyr.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">الملاحظات</h6>
+                            <div class="alert alert-light">
+                                {{ martyr.notes }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'martyrs:martyrs_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> العودة إلى القائمة
+                        </a>
+                        <a href="{% url 'martyrs:martyr_edit' martyr.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> تعديل البيانات
+                        </a>
+                        <a href="/admin/martyrs/martyr/{{ martyr.pk }}/change/" class="btn btn-primary">
+                            <i class="bi bi-gear"></i> تعديل من لوحة الإدارة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

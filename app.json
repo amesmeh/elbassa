@@ -1,0 +1,37 @@
+{
+  "name": "ELBassa - نظام إدارة المساعدات",
+  "description": "نظام متكامل لإدارة المساعدات الإنسانية والبيانات الأساسية للمستفيدين",
+  "repository": "https://github.com/your-username/ELBassa",
+  "logo": "https://via.placeholder.com/150x150/28a745/ffffff?text=ELBassa",
+  "keywords": ["django", "python", "humanitarian", "aid", "management"],
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key for Django",
+      "generator": "secret"
+    },
+    "DEBUG": {
+      "description": "Debug mode",
+      "value": "False"
+    },
+    "ALLOWED_HOSTS": {
+      "description": "Comma-separated list of allowed hosts",
+      "value": ".herokuapp.com"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+} 

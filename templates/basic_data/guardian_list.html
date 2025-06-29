@@ -1,0 +1,597 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-users me-2"></i>أولياء الأمور</h4>
+            <div>
+                {% if user.is_superuser %}
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="deleteButton" disabled>
+                        <i class="fas fa-trash me-1"></i>حذف
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="deleteSelected()">
+                                <i class="fas fa-trash-alt me-2"></i>حذف المحدد
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#" onclick="deleteAll()">
+                                <i class="fas fa-exclamation-triangle me-2"></i>حذف الكل
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <a href="{% url 'basic_data:guardian_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> إضافة ولي أمر جديد
+                </a>
+                
+                <a href="{% url 'basic_data:duplicate_guardians_report' %}" class="btn btn-warning">
+                    <i class="fas fa-users-slash"></i> المكررين
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- حقول البحث -->
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <form method="get" class="d-flex gap-2">
+                    <div class="flex-grow-1">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="ابحث..." value="{{ search_query }}">
+                            <select name="search_type" class="form-select" style="max-width: 200px;">
+                                <option value="name" {% if search_type == 'name' %}selected{% endif %}>الاسم</option>
+                                <option value="id" {% if search_type == 'id' %}selected{% endif %}>رقم الهوية</option>
+                                <option value="phone" {% if search_type == 'phone' %}selected{% endif %}>رقم الجوال</option>
+                            </select>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#advancedSearch">
+                        <i class="fas fa-filter me-1"></i>فلترة متقدمة
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="dropdown">
+                    <button class="btn btn-success dropdown-toggle" type="button" id="excelDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-file-excel me-1"></i>Excel
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                                <i class="fas fa-upload me-2"></i>استيراد Excel
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'basic_data:download_guardians_template' %}">
+                                <i class="fas fa-download me-2"></i>تحميل النموذج
+                            </a>
+                        </li>
+                        {% if 'import_errors' in request.session %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'basic_data:download_import_errors' %}">
+                                <i class="fas fa-exclamation-triangle me-2"></i>تحميل ملف الأخطاء
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'basic_data:export_guardians_excel' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                <i class="fas fa-download me-2"></i>تصدير البيانات الحالية
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- الفلترة المتقدمة -->
+        <div class="collapse mb-3" id="advancedSearch">
+            <div class="card card-body bg-light">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">الحي</label>
+                        <select name="district" class="form-select">
+                            <option value="">الكل</option>
+                            {% for district in districts %}
+                            <option value="{{ district.id }}" {% if selected_district == district.id %}selected{% endif %}>
+                                {{ district.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">الجنس</label>
+                        <select name="gender" class="form-select">
+                            <option value="">الكل</option>
+                            <option value="ذكر" {% if selected_gender == 'ذكر' %}selected{% endif %}>ذكر</option>
+                            <option value="أنثى" {% if selected_gender == 'أنثى' %}selected{% endif %}>أنثى</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">الحالة الاجتماعية</label>
+                        <select name="marital_status" class="form-select">
+                            <option value="">الكل</option>
+                            <option value="متزوج" {% if selected_marital_status == 'متزوج' %}selected{% endif %}>متزوج</option>
+                            <option value="أعزب" {% if selected_marital_status == 'أعزب' %}selected{% endif %}>أعزب</option>
+                            <option value="مطلق" {% if selected_marital_status == 'مطلق' %}selected{% endif %}>مطلق</option>
+                            <option value="أرمل" {% if selected_marital_status == 'أرمل' %}selected{% endif %}>أرمل</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">حالة الإقامة</label>
+                        <select name="residence_status" class="form-select">
+                            <option value="">الكل</option>
+                            <option value="مقيم" {% if selected_residence_status == 'مقيم' %}selected{% endif %}>مقيم</option>
+                            <option value="نازح" {% if selected_residence_status == 'نازح' %}selected{% endif %}>نازح</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">عدد أفراد العائلة</label>
+                        <div class="input-group">
+                            <input type="number" name="family_size_min" class="form-control" placeholder="من" value="{{ family_size_min }}">
+                            <input type="number" name="family_size_max" class="form-control" placeholder="إلى" value="{{ family_size_max }}">
+                        </div>
+                    </div>
+                    <div class="col-12 text-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>بحث
+                        </button>
+                        <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-undo me-1"></i>إعادة تعيين
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- إحصائيات سريعة -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="card-title">إجمالي أولياء الأمور</h6>
+                        <h3 class="mb-0">{{ total_guardians }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h6 class="card-title">إجمالي أفراد العائلات</h6>
+                        <h3 class="mb-0">{{ total_family_members }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h6 class="card-title">المقيمين</h6>
+                        <h3 class="mb-0">{{ residents_count }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h6 class="card-title">النازحين</h6>
+                        <h3 class="mb-0">{{ displaced_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered" id="guardiansTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30px; text-align: center;">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th>رقم الهوية</th>
+                        <th>الاسم</th>
+                        <th>الحي</th>
+                        <th>الجوال</th>
+                        <th>الحالة الاجتماعية</th>
+                        <th>حالة الإقامة</th>
+                        <th style="width: 50px;">عدد الزوجات</th>
+                        <th style="width: 50px;">عدد الأبناء</th>
+                        <th style="width: 50px;">أفراد العائلة</th>
+                        <th style="width: 80px;">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for guardian in page_obj %}
+                    <tr>
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="guardian-checkbox" value="{{ guardian.id }}" onchange="toggleDeleteButton()">
+                        </td>
+                        <td><span class="badge bg-secondary">{{ guardian.national_id }}</span></td>
+                        <td>
+                            <div class="mb-1"><strong>{{ guardian.name }}</strong></div>
+                            <div>
+                                <span class="badge bg-light text-dark">{{ guardian.gender|default:'غير محدد' }}</span>
+                                {% if guardian.current_job %}
+                                    <span class="badge bg-light text-dark">{{ guardian.current_job }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if guardian.district %}
+                                <span class="badge bg-success">{{ guardian.district.name }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-muted">غير محدد</span>
+                            {% endif %}
+                        </td>
+                        <td dir="ltr">
+                            <i class="fas fa-phone text-primary me-1"></i>{{ guardian.phone_number|default:'-' }}
+                        </td>
+                        <td><span class="badge bg-info">{{ guardian.marital_status }}</span></td>
+                        <td>
+                            {% if guardian.residence_status == "نازح" %}
+                                <span class="badge bg-warning">نازح</span>
+                            {% else %}
+                                <span class="badge bg-success">مقيم</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge bg-primary">{{ guardian.wives_count }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge bg-warning text-dark">{{ guardian.children_count }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge bg-dark">{{ guardian.family_members_count }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="btn-group">
+                                <a href="{% url 'basic_data:guardian_detail' guardian.id %}" 
+                                   class="btn btn-sm btn-info" title="عرض التفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                {% if user.is_superuser %}
+                                <a href="{% url 'basic_data:guardian_edit' guardian.id %}" 
+                                   class="btn btn-sm btn-warning" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger" 
+                                        onclick="confirmDelete('{% url 'basic_data:guardian_delete' guardian.id %}')" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- الترقيم -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}" aria-label="First">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}" aria-label="Last">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>لا توجد بيانات لعرضها.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- نافذة تأكيد الحذف الفردي -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">تأكيد الحذف</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    هل أنت متأكد من حذف ولي الأمر المحدد؟
+                </div>
+                <p class="text-danger">هذا الإجراء لا يمكن التراجع عنه.</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>نعم، احذف
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة الحذف المتعدد -->
+<div class="modal fade" id="deleteSelectedModal" tabindex="-1" aria-labelledby="deleteSelectedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteSelectedModalLabel">تأكيد الحذف المتعدد</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    هل أنت متأكد من أنك تريد حذف العناصر المحددة؟
+                </div>
+                <p class="text-danger">سيتم حذف <span id="selectedCount">0</span> من أولياء الأمور. هذا الإجراء لا يمكن التراجع عنه.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="executeDeleteSelected()">
+                    <i class="fas fa-trash me-1"></i>حذف المحدد
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة حذف الكل -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAllModalLabel">⚠️ تحذير: حذف جميع البيانات</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تحذير شديد!</strong> أنت على وشك حذف جميع أولياء الأمور من النظام.
+                </div>
+                <p class="text-danger">سيتم حذف <strong>{{ total_count }}</strong> من أولياء الأمور نهائياً.</p>
+                <p class="text-muted">للمتابعة، يرجى كتابة <code>حذف الكل</code> في الحقل أدناه:</p>
+                <input type="text" id="deleteAllConfirmText" class="form-control" placeholder="اكتب: حذف الكل">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="executeDeleteAllBtn" disabled onclick="executeDeleteAll()">
+                    <i class="fas fa-trash me-1"></i>حذف جميع البيانات
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="fas fa-file-upload me-2"></i>استيراد أولياء الأمور من Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form method="post" action="{% url 'basic_data:import_guardians_excel' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>تعليمات الاستيراد:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>يجب أن يكون الملف بصيغة .xlsx</li>
+                            <li>تأكد من وجود الأحياء في النظام قبل الاستيراد</li>
+                            <li>يمكنك تحميل النموذج أولاً لمعرفة التنسيق المطلوب</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">اختر ملف Excel:</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" 
+                               accept=".xlsx" required>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'basic_data:download_guardians_template' %}" class="btn btn-outline-info">
+                            <i class="fas fa-download me-1"></i>تحميل النموذج
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-upload me-1"></i>استيراد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_superuser %}
+<script>
+function confirmDelete(url) {
+    document.getElementById('deleteForm').setAttribute('action', url);
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+function toggleDeleteButton() {
+    const checkboxes = document.querySelectorAll('.guardian-checkbox:checked');
+    const deleteButton = document.getElementById('deleteButton');
+    deleteButton.disabled = checkboxes.length === 0;
+    
+    document.getElementById('selectedCount').textContent = checkboxes.length;
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.guardian-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    toggleDeleteButton();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleDeleteButton();
+    
+    document.querySelectorAll('.guardian-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', toggleDeleteButton);
+    });
+    
+    document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
+});
+
+function deleteSelected() {
+    const checkboxes = document.querySelectorAll('.guardian-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('يرجى تحديد عنصر واحد على الأقل للحذف');
+        return;
+    }
+    
+    document.getElementById('selectedCount').textContent = checkboxes.length;
+    const modal = new bootstrap.Modal(document.getElementById('deleteSelectedModal'));
+    modal.show();
+}
+
+function executeDeleteSelected() {
+    const checkboxes = document.querySelectorAll('.guardian-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (ids.length === 0) return;
+    
+    fetch('{% url "basic_data:delete_selected_guardians" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            'guardian_ids': ids
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('خطأ: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء الحذف');
+    });
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteSelectedModal'));
+    modal.hide();
+}
+
+function deleteAll() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteAllModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmText = document.getElementById('deleteAllConfirmText');
+    const executeBtn = document.getElementById('executeDeleteAllBtn');
+    
+    if (confirmText && executeBtn) {
+        confirmText.addEventListener('input', function() {
+            executeBtn.disabled = this.value.trim() !== 'حذف الكل';
+        });
+    }
+});
+
+function executeDeleteAll() {
+    const confirmText = document.getElementById('deleteAllConfirmText');
+    if (confirmText.value.trim() !== 'حذف الكل') {
+        alert('يرجى كتابة "حذف الكل" للمتابعة');
+        return;
+    }
+    
+    fetch('{% url "basic_data:delete_all_guardians" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('خطأ: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء الحذف');
+    });
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAllModal'));
+    modal.hide();
+}
+</script>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if district %}تعديل الحي - {{ district.name }}{% else %}إضافة حي جديد{% endif %} - برنامج المساعدات
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>
+                    <i class="bi bi-geo-alt me-2"></i>
+                    {% if district %}تعديل الحي - {{ district.name }}{% else %}إضافة حي جديد{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="section-header">
+                        <h5><i class="bi bi-info-circle me-2"></i>بيانات الحي</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="name" class="form-label">اسم الحي <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{% if district %}{{ district.name }}{% endif %}" 
+                                   placeholder="أدخل اسم الحي" required>
+                            <div class="form-text">مثال: حي الشجاعية، حي الزيتون، إلخ</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <h5><i class="bi bi-person me-2"></i>بيانات مندوب الحي</h5>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="representative_name" class="form-label">اسم مندوب الحي <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="representative_name" name="representative_name" 
+                                   value="{% if district %}{{ district.representative_name }}{% endif %}" 
+                                   placeholder="أدخل اسم مندوب الحي" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="representative_phone" class="form-label">رقم جوال المندوب <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="representative_phone" name="representative_phone" 
+                                   value="{% if district %}{{ district.representative_phone }}{% endif %}" 
+                                   placeholder="0599123456" maxlength="15" pattern="(\+970|0)?5[0-9]{8}" required>
+                            <div class="form-text">مثال: 0599123456</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'basic_data:districts_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
+                        </a>
+                        <div>
+                            {% if district %}
+                                <a href="{% url 'basic_data:district_detail' district.pk %}" class="btn btn-info me-2">
+                                    <i class="bi bi-eye me-2"></i>عرض التفاصيل
+                                </a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check me-2"></i>
+                                {% if district %}تحديث البيانات{% else %}إضافة الحي{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // التحقق من صحة رقم الجوال
+    $('#representative_phone').on('input', function() {
+        var value = $(this).val();
+        var isValid = /^(\+970|0)?5[0-9]{8}$/.test(value);
+        
+        if (value.length > 0 && !isValid) {
+            $(this).addClass('is-invalid');
+            if (!$(this).next('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">رقم الجوال غير صحيح</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).next('.invalid-feedback').remove();
+        }
+    });
+    
+    // منع إدخال أحرف غير صحيحة في حقل رقم الجوال
+    $('#representative_phone').on('keypress', function(e) {
+        var charCode = (e.which) ? e.which : e.keyCode;
+        // السماح بالأرقام والرمز +
+        if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode !== 43) {
+            return false;
+        }
+        return true;
+    });
+});
+</script>
+{% endblock %} 

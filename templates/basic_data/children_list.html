@@ -1,0 +1,737 @@
+{% extends 'base.html' %}
+
+{% block title %}الأبناء - برنامج المساعدات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-people me-2"></i>الأبناء</h4>
+                <div class="d-flex gap-2">
+                    <!-- قائمة الحذف -->
+                    <div class="dropdown">
+                        <button class="btn btn-danger dropdown-toggle" type="button" id="deleteDropdown" 
+                                data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                            <i class="bi bi-trash me-2"></i>حذف
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" id="deleteSelectedBtn">
+                                    <i class="bi bi-trash-fill me-2"></i>حذف المحدد (<span id="selectedCount">0</span>)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" id="deleteAllBtn">
+                                    <i class="bi bi-trash3-fill me-2"></i>حذف الكل ({{ total_count }})
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- قائمة Excel -->
+                    <div class="dropdown">
+                        <button class="btn btn-success dropdown-toggle" type="button" id="excelDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-excel me-2"></i>Excel
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                                    <i class="bi bi-upload me-2"></i>استيراد Excel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'basic_data:download_children_template' %}">
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>تحميل النموذج
+                                </a>
+                            </li>
+                            {% if 'import_errors' in request.session %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'basic_data:download_import_errors' %}">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>تحميل ملف الأخطاء
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'basic_data:export_children_excel' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                    <i class="bi bi-download me-2"></i>تصدير البيانات الحالية
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- زر إضافة ابن -->
+                    <a href="{% url 'basic_data:child_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus me-2"></i>إضافة ابن جديد
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- شريط البحث والفلاتر -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="GET" class="d-flex">
+                            {% for key, value in request.GET.items %}
+                                {% if key != 'search' and key != 'search_type' %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="البحث بالاسم أو رقم الهوية أو اسم ولي الأمر..." 
+                                       value="{{ search_query }}">
+                                <select name="search_type" class="form-select" style="max-width: 120px;" title="نوع البحث">
+                                    <option value="exact" {% if search_type == 'exact' or not search_type %}selected{% endif %}>دقيق</option>
+                                    <option value="broad" {% if search_type == 'broad' %}selected{% endif %}>شامل</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                {% if search_query %}
+                                    <a href="{% url 'basic_data:children_list' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="GET" class="row g-2">
+                            {% if search_query %}
+                                <input type="hidden" name="search" value="{{ search_query }}">
+                            {% endif %}
+                            {% if search_type %}
+                                <input type="hidden" name="search_type" value="{{ search_type }}">
+                            {% endif %}
+                            {% if birth_date_from %}
+                                <input type="hidden" name="birth_date_from" value="{{ birth_date_from }}">
+                            {% endif %}
+                            {% if birth_date_to %}
+                                <input type="hidden" name="birth_date_to" value="{{ birth_date_to }}">
+                            {% endif %}
+                            
+                            <div class="col-md-4">
+                                <select name="district" class="form-select">
+                                    <option value="">جميع الأحياء</option>
+                                    {% for district in districts %}
+                                        <option value="{{ district.pk }}" 
+                                                {% if selected_district == district.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ district.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <select name="guardian" class="form-select">
+                                    <option value="">جميع أولياء الأمور</option>
+                                    {% for guardian in guardians %}
+                                        <option value="{{ guardian.pk }}" 
+                                                {% if selected_guardian == guardian.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ guardian.name }} - {{ guardian.national_id }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+
+                            
+                            <div class="col-md-2">
+                                <select name="age_group" class="form-select">
+                                    <option value="">جميع الأعمار</option>
+                                    <option value="0-5" {% if selected_age_group == "0-5" %}selected{% endif %}>0-5 سنوات</option>
+                                    <option value="6-12" {% if selected_age_group == "6-12" %}selected{% endif %}>6-12 سنة</option>
+                                    <option value="13-18" {% if selected_age_group == "13-18" %}selected{% endif %}>13-18 سنة</option>
+                                    <option value="18+" {% if selected_age_group == "18+" %}selected{% endif %}>أكثر من 18 سنة</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-funnel me-1"></i>فلترة
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- عرض معلومات ولي الأمر المحدد -->
+                {% if selected_guardian_obj %}
+                    <div class="alert alert-info d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-person-check me-2"></i>
+                            <strong>عرض أبناء ولي الأمر:</strong> 
+                            {{ selected_guardian_obj.name }} - {{ selected_guardian_obj.national_id }}
+                            {% if selected_guardian_obj.district %}
+                                <span class="badge bg-secondary ms-2">{{ selected_guardian_obj.district.name }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{% url 'basic_data:guardian_detail' selected_guardian_obj.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                                <i class="bi bi-eye me-1"></i>عرض تفاصيل ولي الأمر
+                            </a>
+                            <a href="{% url 'basic_data:children_list' %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-x me-1"></i>إلغاء الفلتر
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- فلترة تاريخ الميلاد -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card bg-light border-0">
+                            <div class="card-body py-2">
+                                <form method="GET" class="row g-2 align-items-center">
+                                    {% if search_query %}
+                                        <input type="hidden" name="search" value="{{ search_query }}">
+                                    {% endif %}
+                                    {% if search_type %}
+                                        <input type="hidden" name="search_type" value="{{ search_type }}">
+                                    {% endif %}
+                                    {% if selected_guardian %}
+                                        <input type="hidden" name="guardian" value="{{ selected_guardian }}">
+                                    {% endif %}
+
+                                    {% if selected_age_group %}
+                                        <input type="hidden" name="age_group" value="{{ selected_age_group }}">
+                                    {% endif %}
+                                    {% if selected_district %}
+                                        <input type="hidden" name="district" value="{{ selected_district }}">
+                                    {% endif %}
+                                    
+                                    <div class="col-auto">
+                                        <label class="form-label mb-0 fw-bold">
+                                            <i class="bi bi-calendar-range me-1"></i>فلترة حسب تاريخ الميلاد:
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="col-auto">
+                                        <label class="form-label mb-0 text-muted">من:</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="date" name="birth_date_from" class="form-control form-control-sm" 
+                                               value="{{ birth_date_from }}">
+                                    </div>
+                                    
+                                    <div class="col-auto">
+                                        <label class="form-label mb-0 text-muted">إلى:</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="date" name="birth_date_to" class="form-control form-control-sm" 
+                                               value="{{ birth_date_to }}">
+                                    </div>
+                                    
+                                    <div class="col-auto">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-search me-1"></i>بحث
+                                        </button>
+                                    </div>
+                                    
+                                    {% if birth_date_from or birth_date_to %}
+                                    <div class="col-auto">
+                                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if search_type %}search_type={{ search_type }}&{% endif %}{% if selected_guardian %}guardian={{ selected_guardian }}&{% endif %}{% if selected_age_group %}age_group={{ selected_age_group }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}" 
+                                           class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-x me-1"></i>إلغاء فلتر التاريخ
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- إحصائيات سريعة -->
+                <div class="row mb-3">
+                    <div class="col-md-2">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ total_count }}</h5>
+                                <small>إجمالي الأبناء</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ age_0_5 }}</h5>
+                                <small>0-5 سنوات</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ age_6_12 }}</h5>
+                                <small>6-12 سنة</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ age_13_18 }}</h5>
+                                <small>13-18 سنة</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الجدول -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="childrenTable">
+                            <thead>
+                                <tr>
+                                    <th width="40">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAll">
+                                        </div>
+                                    </th>
+                                    <th>اسم الطفل</th>
+                                    <th>العمر</th>
+                                    <th>تاريخ الميلاد</th>
+                                    <th>رقم الهوية</th>
+                                    <th>ولي الأمر</th>
+                                    <th>رقم هوية ولي الأمر</th>
+                                    <th>الحي</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for child in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input child-checkbox" type="checkbox" value="{{ child.id }}">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ child.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ child.age }} سنة</span>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ child.birth_date|date:"d/m/Y" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if child.national_id %}
+                                                <span class="badge bg-secondary">{{ child.national_id }}</span>
+                                            {% else %}
+                                                <span class="text-muted">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'basic_data:guardian_detail' child.guardian.pk %}" class="text-decoration-none">
+                                                <strong>{{ child.guardian.name }}</strong>
+                                            </a>
+                                            <br><small class="text-muted">{{ child.guardian.national_id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ child.guardian.national_id }}</span>
+                                        </td>
+                                        <td>
+                                            {% if child.guardian.district %}
+                                                <span class="badge bg-warning">{{ child.guardian.district.name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'basic_data:child_detail' child.pk %}" 
+                                                   class="btn btn-sm btn-outline-info" title="عرض تفاصيل الطفل">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{% url 'basic_data:child_edit' child.pk %}" 
+                                                   class="btn btn-sm btn-outline-warning" title="تعديل بيانات الطفل">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'basic_data:child_delete' child.pk %}" 
+                                                   class="btn btn-sm btn-outline-danger" title="حذف الطفل"
+                                                   onclick="return confirm('هل أنت متأكد من حذف الطفل {{ child.name }}؟')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="صفحات النتائج">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}{% if selected_age_group %}&age_group={{ selected_age_group }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if birth_date_from %}&birth_date_from={{ birth_date_from }}{% endif %}{% if birth_date_to %}&birth_date_to={{ birth_date_to }}{% endif %}">الأولى</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}{% if selected_age_group %}&age_group={{ selected_age_group }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if birth_date_from %}&birth_date_from={{ birth_date_from }}{% endif %}{% if birth_date_to %}&birth_date_to={{ birth_date_to }}{% endif %}">السابقة</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}{% if selected_age_group %}&age_group={{ selected_age_group }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if birth_date_from %}&birth_date_from={{ birth_date_from }}{% endif %}{% if birth_date_to %}&birth_date_to={{ birth_date_to }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}{% if selected_age_group %}&age_group={{ selected_age_group }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if birth_date_from %}&birth_date_from={{ birth_date_from }}{% endif %}{% if birth_date_to %}&birth_date_to={{ birth_date_to }}{% endif %}">التالية</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if search_type %}&search_type={{ search_type }}{% endif %}{% if selected_guardian %}&guardian={{ selected_guardian }}{% endif %}{% if selected_age_group %}&age_group={{ selected_age_group }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}{% if birth_date_from %}&birth_date_from={{ birth_date_from }}{% endif %}{% if birth_date_to %}&birth_date_to={{ birth_date_to }}{% endif %}">الأخيرة</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+                        <h5 class="mt-3 text-muted">لا يوجد أبناء</h5>
+                        <p class="text-muted">ابدأ بإضافة أولياء أمور لديهم أطفال</p>
+                        <a href="{% url 'basic_data:guardian_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus me-2"></i>إضافة ولي أمر جديد
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="bi bi-upload me-2"></i>استيراد الأبناء من Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form method="post" action="{% url 'basic_data:import_children_excel' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>تعليمات الاستيراد:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>يجب أن يكون الملف بصيغة .xlsx</li>
+                            <li>تأكد من وجود أولياء الأمور في النظام قبل الاستيراد</li>
+                            <li>يمكنك تحميل النموذج أولاً لمعرفة التنسيق المطلوب</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">اختر ملف Excel:</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" 
+                               accept=".xlsx" required>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'basic_data:download_children_template' %}" class="btn btn-outline-info">
+                            <i class="bi bi-download me-1"></i>تحميل النموذج
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload me-1"></i>استيراد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تأكيد حذف المحدد -->
+<div class="modal fade" id="deleteSelectedModal" tabindex="-1" aria-labelledby="deleteSelectedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteSelectedModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>تأكيد حذف المحدد
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>تحذير!</strong> 
+                    هذا الإجراء لا يمكن التراجع عنه.
+                </div>
+                <p>هل أنت متأكد من حذف <strong><span id="selectedCountText">0</span></strong> من الأطفال المحددين؟</p>
+                <p class="text-muted">سيتم حذف جميع البيانات المرتبطة بهؤلاء الأطفال نهائياً.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteSelected">
+                    <i class="bi bi-trash me-1"></i>حذف المحدد
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تأكيد حذف الكل -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAllModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>تأكيد حذف جميع الأطفال
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>تحذير شديد!</strong> 
+                    هذا الإجراء خطير جداً ولا يمكن التراجع عنه.
+                </div>
+                <p>هل أنت متأكد من حذف <strong>جميع الأطفال ({{ total_count }})</strong>؟</p>
+                <p class="text-danger">سيتم حذف جميع بيانات الأطفال في النظام نهائياً!</p>
+                
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmDeleteAllCheck">
+                    <label class="form-check-label text-danger fw-bold" for="confirmDeleteAllCheck">
+                        أؤكد أنني أريد حذف جميع الأطفال نهائياً
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAll" disabled>
+                    <i class="bi bi-trash3 me-1"></i>حذف جميع الأطفال
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تفعيل DataTables للجدول
+    $('#childrenTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+        },
+        "pageLength": 20,
+        "order": [[ 1, "asc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": [0, 8] }
+        ]
+    });
+
+    // متغيرات للحذف
+    let selectedIds = [];
+
+    // تحديث عدد المحدد
+    function updateSelectedCount() {
+        const count = selectedIds.length;
+        $('#selectedCount').text(count);
+        $('#selectedCountText').text(count);
+        
+        // تفعيل/إلغاء تفعيل زر الحذف
+        $('#deleteDropdown').prop('disabled', count === 0);
+        $('#deleteSelectedBtn').parent().toggle(count > 0);
+    }
+
+    // checkbox اختيار الكل
+    $('#selectAll').change(function() {
+        const isChecked = $(this).is(':checked');
+        $('.child-checkbox').prop('checked', isChecked);
+        
+        if (isChecked) {
+            selectedIds = $('.child-checkbox').map(function() {
+                return $(this).val();
+            }).get();
+        } else {
+            selectedIds = [];
+        }
+        updateSelectedCount();
+    });
+
+    // checkbox اختيار فردي
+    $(document).on('change', '.child-checkbox', function() {
+        const childId = $(this).val();
+        
+        if ($(this).is(':checked')) {
+            if (!selectedIds.includes(childId)) {
+                selectedIds.push(childId);
+            }
+        } else {
+            selectedIds = selectedIds.filter(id => id !== childId);
+            $('#selectAll').prop('checked', false);
+        }
+        
+        // تحديث checkbox الكل
+        const totalCheckboxes = $('.child-checkbox').length;
+        const checkedCheckboxes = $('.child-checkbox:checked').length;
+        $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+        
+        updateSelectedCount();
+    });
+
+    // حذف المحدد
+    $('#deleteSelectedBtn').click(function(e) {
+        e.preventDefault();
+        if (selectedIds.length > 0) {
+            $('#deleteSelectedModal').modal('show');
+        }
+    });
+
+    // حذف الكل
+    $('#deleteAllBtn').click(function(e) {
+        e.preventDefault();
+        $('#deleteAllModal').modal('show');
+    });
+
+    // تأكيد حذف المحدد
+    $('#confirmDeleteSelected').click(function() {
+        if (selectedIds.length === 0) return;
+        
+        $(this).prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i>جاري الحذف...');
+        
+        $.ajax({
+            url: '{% url "basic_data:delete_selected_children" %}',
+            method: 'POST',
+            data: {
+                'child_ids': selectedIds,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                $('#deleteSelectedModal').modal('hide');
+                if (response.success) {
+                    // عرض رسالة نجاح
+                    showToast('تم حذف ' + response.deleted_count + ' من الأطفال بنجاح', 'success');
+                    
+                    // تحديث الصفحة بعد قليل
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('حدث خطأ أثناء الحذف: ' + response.message, 'error');
+                    $('#confirmDeleteSelected').prop('disabled', false).html('<i class="bi bi-trash me-1"></i>حذف المحدد');
+                }
+            },
+            error: function() {
+                $('#deleteSelectedModal').modal('hide');
+                showToast('حدث خطأ في الاتصال', 'error');
+                $('#confirmDeleteSelected').prop('disabled', false).html('<i class="bi bi-trash me-1"></i>حذف المحدد');
+            }
+        });
+    });
+
+    // checkbox تأكيد حذف الكل
+    $('#confirmDeleteAllCheck').change(function() {
+        $('#confirmDeleteAll').prop('disabled', !$(this).is(':checked'));
+    });
+
+    // تأكيد حذف الكل
+    $('#confirmDeleteAll').click(function() {
+        if (!$('#confirmDeleteAllCheck').is(':checked')) return;
+        
+        $(this).prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i>جاري الحذف...');
+        
+        $.ajax({
+            url: '{% url "basic_data:delete_all_children" %}',
+            method: 'POST',
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                $('#deleteAllModal').modal('hide');
+                if (response.success) {
+                    // عرض رسالة نجاح
+                    showToast('تم حذف جميع الأطفال (' + response.deleted_count + ') بنجاح', 'success');
+                    
+                    // تحديث الصفحة بعد قليل
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('حدث خطأ أثناء الحذف: ' + response.message, 'error');
+                    $('#confirmDeleteAll').prop('disabled', false).html('<i class="bi bi-trash3 me-1"></i>حذف جميع الأطفال');
+                }
+            },
+            error: function() {
+                $('#deleteAllModal').modal('hide');
+                showToast('حدث خطأ في الاتصال', 'error');
+                $('#confirmDeleteAll').prop('disabled', false).html('<i class="bi bi-trash3 me-1"></i>حذف جميع الأطفال');
+            }
+        });
+    });
+
+    // دالة عرض Toast notifications
+    function showToast(message, type) {
+        const toastId = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
+        const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+        
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi ${icon} me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        // إضافة toast container إذا لم يكن موجود
+        if ($('#toast-container').length === 0) {
+            $('body').append('<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>');
+        }
+        
+        $('#toast-container').append(toastHtml);
+        const toast = new bootstrap.Toast(document.getElementById(toastId));
+        toast.show();
+        
+        // حذف العنصر بعد اختفائه
+        $(`#${toastId}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // إعادة تعيين modal حذف الكل عند إغلاقه
+    $('#deleteAllModal').on('hidden.bs.modal', function() {
+        $('#confirmDeleteAllCheck').prop('checked', false);
+        $('#confirmDeleteAll').prop('disabled', true).html('<i class="bi bi-trash3 me-1"></i>حذف جميع الأطفال');
+    });
+
+    // تهيئة العدد المبدئي
+    updateSelectedCount();
+});
+</script>
+{% endblock %} 

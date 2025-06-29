@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل المساعدة - {{ assistance.beneficiary_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    .info-row {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 15px 0;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+    .info-value {
+        color: #6c757d;
+        font-size: 1.1em;
+    }
+    .assistance-type-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+    .quantity-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .action-buttons {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+    .history-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+    .history-item {
+        padding: 15px;
+        border-left: 4px solid #007bff;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 15px;
+    }
+    .history-item:last-child {
+        margin-bottom: 0;
+    }
+    .history-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .history-type {
+        font-weight: 600;
+        margin: 5px 0;
+    }
+    .history-quantity {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    /* العنوان البسيط */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .page-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    .page-header p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-hands-helping"></i>
+            برنامج المساعدات - قطاع غزة
+        </h1>
+        <p>تفاصيل مساعدة: {{ assistance.beneficiary_name }}</p>
+    </div>
+
+    <!-- Action Button -->
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <a href="{% url 'assistance:assistance_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-right"></i> العودة للقائمة
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Details -->
+        <div class="col-lg-8">
+            <div class="detail-card">
+                <h4 class="mb-4 text-primary">
+                    <i class="fas fa-user"></i>
+                    معلومات المستفيد
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">اسم المستفيد</div>
+                            <div class="info-value">
+                                <strong>{{ assistance.beneficiary_name }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">رقم الهوية</div>
+                            <div class="info-value">
+                                <code>{{ assistance.national_id }}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">العدد الأسري</div>
+                            <div class="info-value">
+                                {{ assistance.family_members_count|default:"غير محدد" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">الحي</div>
+                            <div class="info-value">
+                                {{ assistance.district_name|default:"غير محدد" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <h4 class="mb-4 text-success">
+                    <i class="fas fa-hands-helping"></i>
+                    تفاصيل المساعدة
+                </h4>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">نوع المساعدة</div>
+                            <div class="info-value">
+                                <span class="badge assistance-type-badge bg-primary">
+                                    {{ assistance.assistance_type }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">الكمية</div>
+                            <div class="info-value">
+                                <span class="quantity-display">{{ assistance.quantity|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">تاريخ المساعدة</div>
+                            <div class="info-value">
+                                {{ assistance.assistance_date|date:"l، j F Y" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">تاريخ الإضافة</div>
+                            <div class="info-value">
+                                {{ assistance.created_at|date:"j F Y - H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if assistance.notes %}
+                <div class="info-row">
+                    <div class="info-label">ملاحظات</div>
+                    <div class="info-value">
+                        {{ assistance.notes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="col-lg-4">
+            <div class="action-buttons">
+                <h5 class="mb-3">
+                    <i class="fas fa-cogs"></i>
+                    إجراءات
+                </h5>
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'assistance:assistance_edit' assistance.pk %}" 
+                       class="btn btn-warning">
+                        <i class="fas fa-edit"></i> تعديل المساعدة
+                    </a>
+                    
+                    <a href="{% url 'assistance:assistance_create' %}?copy={{ assistance.pk }}" 
+                       class="btn btn-success">
+                        <i class="fas fa-copy"></i> تكرار المساعدة
+                    </a>
+                    
+                    <button type="button" class="btn btn-danger" 
+                            onclick="deleteAssistance({{ assistance.pk }})">
+                        <i class="fas fa-trash"></i> حذف المساعدة
+                    </button>
+                    
+                    <hr>
+                    
+                    <a href="{% url 'assistance:assistance_list' %}" 
+                       class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> عرض كل المساعدات
+                    </a>
+                    
+                    <a href="{% url 'assistance:assistance_create' %}" 
+                       class="btn btn-outline-success">
+                        <i class="fas fa-plus"></i> إضافة مساعدة جديدة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beneficiary History -->
+    {% if beneficiary_history %}
+    <div class="history-card">
+        <h4 class="mb-4 text-info">
+            <i class="fas fa-history"></i>
+            تاريخ مساعدات المستفيد ({{ beneficiary_history.count }} مساعدة)
+        </h4>
+        
+        <div class="row">
+            {% for history_item in beneficiary_history %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="history-item">
+                    <div class="history-date">
+                        <i class="fas fa-calendar"></i>
+                        {{ history_item.assistance_date|date:"j F Y" }}
+                    </div>
+                    <div class="history-type">
+                        {{ history_item.get_assistance_type_display }}
+                    </div>
+                    <div class="history-quantity">
+                        الكمية: {{ history_item.quantity|floatformat:0 }}
+                    </div>
+                    {% if history_item.pk != assistance.pk %}
+                    <div class="mt-2">
+                        <a href="{% url 'assistance:assistance_detail' history_item.pk %}" 
+                           class="btn btn-sm btn-outline-info">
+                            عرض التفاصيل
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="mt-2">
+                        <small class="badge bg-primary">المساعدة الحالية</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% csrf_token %}
+<script>
+function deleteAssistance(assistanceId) {
+    if (confirm('هل أنت متأكد من حذف هذه المساعدة؟\nلا يمكن التراجع عن هذا الإجراء.')) {
+        // الحصول على CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value || 
+                         document.querySelector('meta[name="csrf-token"]').getAttribute('content') ||
+                         '{{ csrf_token }}';
+        
+        fetch(`/assistance/${assistanceId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // إظهار رسالة النجاح وإعادة التوجيه
+                alert(data.message);
+                window.location.href = '/assistance/';
+            } else {
+                alert('حدث خطأ أثناء الحذف');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء الحذف');
+        });
+    }
+}
+</script>
+{% endblock %} 

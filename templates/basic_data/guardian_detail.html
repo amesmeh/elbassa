@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ guardian.name }} - تفاصيل ولي الأمر{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-header {
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .section-header h5 {
+        color: #495057;
+        font-weight: 600;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .stats-card h3 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .child-card {
+        border: 1px solid #e3f2fd;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .child-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .badge.bg-pink {
+        background-color: #e91e63 !important;
+    }
+    
+    .assistance-summary {
+        border: 1px solid #d4edda;
+        border-radius: 8px;
+    }
+    
+    .assistance-summary .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #d4edda;
+    }
+    
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+    
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+    
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-person me-2"></i>{{ guardian.name }}</h4>
+                <div>
+                    <a href="{% url 'basic_data:guardian_edit' guardian.pk %}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-pencil me-1"></i>تعديل
+                    </a>
+                    <a href="{% url 'basic_data:guardian_delete' guardian.pk %}" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash me-1"></i>حذف
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- البيانات الأساسية -->
+                <div class="section-header">
+                    <h5><i class="bi bi-info-circle me-2"></i>البيانات الأساسية</h5>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">اسم ولي الأمر</h6>
+                            <h5 class="mb-0">{{ guardian.name }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">رقم الهوية</h6>
+                            <h5 class="mb-0">
+                                <span class="badge bg-secondary fs-6">{{ guardian.national_id }}</span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">الوظيفة</h6>
+                            <p class="mb-0">{{ guardian.current_job|default:"غير محدد" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">رقم الجوال</h6>
+                            <p class="mb-0">
+                                <i class="bi bi-phone me-1"></i>{{ guardian.phone_number }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">الجنس</h6>
+                            <p class="mb-0">
+                                {% if guardian.gender == "ذكر" %}
+                                    <span class="badge bg-primary">{{ guardian.gender }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ guardian.gender }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- البيانات العائلية -->
+                <div class="section-header">
+                    <h5><i class="bi bi-people me-2"></i>البيانات العائلية</h5>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">الحالة الاجتماعية</h6>
+                            <p class="mb-0">
+                                {% if guardian.marital_status == "متزوج" %}
+                                    <span class="badge bg-success">{{ guardian.marital_status }}</span>
+                                {% elif guardian.marital_status == "أرمل" %}
+                                    <span class="badge bg-dark">{{ guardian.marital_status }}</span>
+                                {% elif guardian.marital_status == "مطلق" %}
+                                    <span class="badge bg-warning">{{ guardian.marital_status }}</span>
+                                {% else %}
+                                    <span class="badge bg-primary">{{ guardian.marital_status }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">عدد الأبناء</h6>
+                            <h5 class="mb-0 text-primary">{{ guardian.children_count }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">عدد الزوجات</h6>
+                            <h5 class="mb-0 text-info">{{ guardian.wives_count }}</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">إجمالي أفراد العائلة</h6>
+                            <h5 class="mb-0 text-success">{{ guardian.family_members_count }}</h5>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- الزوجات -->
+                {% if guardian.wives_count > 0 %}
+                    <div class="section-header d-flex justify-content-between align-items-center">
+                        <h5><i class="bi bi-person-heart me-2"></i>الزوجات</h5>
+                        <a href="{% url 'basic_data:migrate_all_wives_to_guardian' guardian.pk %}" 
+                           class="btn btn-outline-primary btn-sm"
+                           onclick="return confirm('هل أنت متأكد من ترحيل جميع الزوجات ({{ guardian.wives_count }}) إلى ولي أمر جديد؟')">
+                            <i class="bi bi-arrow-right-circle me-1"></i>ترحيل الكل
+                        </a>
+                    </div>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>اسم الزوجة</th>
+                                    <th>رقم الهوية</th>
+                                    <th>تاريخ الإضافة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for wife in guardian.wives.all %}
+                                    <tr>
+                                        <td><strong>{{ wife.name }}</strong></td>
+                                        <td>
+                                            {% if wife.national_id %}
+                                                <span class="badge bg-secondary">{{ wife.national_id }}</span>
+                                            {% else %}
+                                                <span class="text-muted">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ wife.created_at|date:"d/m/Y" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'basic_data:migrate_wife_to_guardian' wife.pk %}" 
+                                               class="btn btn-sm btn-outline-primary" title="ترحيل إلى ولي أمر جديد"
+                                               onclick="return confirm('هل أنت متأكد من ترحيل الزوجة {{ wife.name }} إلى ولي أمر جديد؟')">
+                                                <i class="bi bi-arrow-right-circle"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                
+                <!-- الأبناء -->
+                {% if guardian.children_count > 0 %}
+                    <div class="section-header d-flex justify-content-between align-items-center">
+                        <h5><i class="bi bi-people me-2"></i>الأبناء</h5>
+                        <a href="{% url 'basic_data:migrate_all_children_to_guardian' guardian.pk %}" 
+                           class="btn btn-outline-primary btn-sm"
+                           onclick="return confirm('هل أنت متأكد من ترحيل جميع الأبناء ({{ guardian.children_count }}) إلى ولي أمر جديد؟')">
+                            <i class="bi bi-arrow-right-circle me-1"></i>ترحيل الكل
+                        </a>
+                    </div>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>اسم الطفل</th>
+                                    <th>العمر</th>
+                                    <th>تاريخ الميلاد</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for child in guardian.children.all %}
+                                    <tr>
+                                        <td><strong>{{ child.name }}</strong></td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ child.age }} سنة</span>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ child.birth_date|date:"d/m/Y" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if child.national_id %}
+                                                <span class="badge bg-secondary">{{ child.national_id }}</span>
+                                            {% else %}
+                                                <span class="text-muted">غير محدد</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'basic_data:migrate_child_to_guardian' child.pk %}" 
+                                               class="btn btn-sm btn-outline-primary" title="ترحيل إلى ولي أمر جديد"
+                                               onclick="return confirm('هل أنت متأكد من ترحيل الطفل {{ child.name }} إلى ولي أمر جديد؟')">
+                                                <i class="bi bi-arrow-right-circle"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                
+                <!-- قسم المساعدات -->
+                {% if assistance_count > 0 %}
+                <div class="section-header">
+                    <h5><i class="bi bi-gift me-2"></i>المساعدات والاستفادة</h5>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card assistance-summary">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-gift me-2"></i>ملخص المساعدات ({{ assistance_count }})
+                                </h6>
+                                <a href="{% url 'assistance:assistance_list' %}?search_query={{ guardian.national_id }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>عرض الكل
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <!-- إحصائيات المساعدات -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="text-center p-3 bg-success-subtle rounded">
+                                            <h5 class="text-success mb-1">{{ assistance_count }}</h5>
+                                            <small class="text-muted">إجمالي المساعدات</small>
+                                        </div>
+                                    </div>
+                                    {% if last_assistance_date %}
+                                    <div class="col-md-4">
+                                        <div class="text-center p-3 bg-info-subtle rounded">
+                                            <h6 class="text-info mb-1">{{ last_assistance_date|date:"Y/m/d" }}</h6>
+                                            <small class="text-muted">آخر استفادة</small>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="col-md-4">
+                                        <div class="text-center p-3 bg-warning-subtle rounded">
+                                            <h6 class="text-warning mb-1">{{ assistance_types_received|length }}</h6>
+                                            <small class="text-muted">أنواع مختلفة</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- أنواع المساعدات المستلمة -->
+                                {% if assistance_types_received %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">أنواع المساعدات المستلمة:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for assistance_type in assistance_types_received %}
+                                        <span class="badge bg-secondary">{{ assistance_type }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- آخر المساعدات -->
+                                {% if assistance_records %}
+                                <h6 class="text-muted mb-3">آخر المساعدات:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>التاريخ</th>
+                                                <th>نوع المساعدة</th>
+                                                <th>الكمية</th>
+                                                <th>ملاحظات</th>
+                                                <th>الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for assistance in assistance_records %}
+                                            <tr>
+                                                <td>
+                                                    <small>{{ assistance.assistance_date|date:"Y/m/d" }}</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary">{{ assistance.assistance_type }}</span>
+                                                </td>
+                                                <td>
+                                                    <strong>{{ assistance.quantity|floatformat:0 }}</strong>
+                                                </td>
+                                                <td>
+                                                    <small>{{ assistance.notes|default:"—"|truncatechars:30 }}</small>
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'assistance:assistance_detail' assistance.pk %}" 
+                                                       class="btn btn-outline-info btn-sm" title="عرض التفاصيل">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- حالة الإقامة -->
+                <div class="section-header">
+                    <h5><i class="bi bi-house me-2"></i>حالة الإقامة والعنوان</h5>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">حالة الإقامة</h6>
+                            <p class="mb-0">
+                                {% if guardian.residence_status == "نازح" %}
+                                    <span class="badge bg-warning fs-6">نازح</span>
+                                {% else %}
+                                    <span class="badge bg-success fs-6">مقيم</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 bg-light">
+                            <h6 class="text-muted mb-2">الحي</h6>
+                            <p class="mb-0">
+                                {% if guardian.district %}
+                                    <span class="badge bg-info fs-6">{{ guardian.district.name }}</span>
+                                    <br><small class="text-muted">مندوب الحي: {{ guardian.district.representative_name }}</small>
+                                {% else %}
+                                    <span class="text-muted">غير محدد</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بيانات النزوح (إذا كان نازح) -->
+                {% if guardian.residence_status == "نازح" %}
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 bg-light">
+                                <h6 class="text-muted mb-2">المحافظة الأصلية</h6>
+                                <p class="mb-0">{{ guardian.original_governorate|default:"غير محدد" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 bg-light">
+                                <h6 class="text-muted mb-2">المدينة الأصلية</h6>
+                                <p class="mb-0">{{ guardian.original_city|default:"غير محدد" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 bg-light">
+                                <h6 class="text-muted mb-2">عنوان النزوح</h6>
+                                <p class="mb-0">{{ guardian.displacement_address|default:"غير محدد" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'basic_data:guardians_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-right me-2"></i>العودة للقائمة
+                    </a>
+                    <a href="{% url 'basic_data:guardian_edit' guardian.pk %}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>تعديل البيانات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- إحصائيات سريعة -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up me-2"></i>إحصائيات العائلة</h5>
+            </div>
+            <div class="card-body">
+                <div class="stats-card mb-3">
+                    <h3>{{ guardian.family_members_count }}</h3>
+                    <p><i class="bi bi-people me-2"></i>إجمالي أفراد العائلة</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-4">
+                        <div class="text-center p-2 border rounded">
+                            <h5 class="text-primary">{{ guardian.children_count }}</h5>
+                            <small>أطفال</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-2 border rounded">
+                            <h5 class="text-info">{{ guardian.wives_count }}</h5>
+                            <small>زوجات</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-2 border rounded">
+                            <h5 class="text-success">{{ assistance_count }}</h5>
+                            <small>مساعدات</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if last_assistance_date %}
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        آخر استفادة: {{ last_assistance_date|date:"Y/m/d" }}
+                    </small>
+                </div>
+                {% endif %}
+                
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="text-center p-2 border rounded">
+                            <h6 class="text-primary">{{ guardian.children_count }}</h6>
+                            <small>إجمالي الأطفال</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- معلومات إضافية -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle me-2"></i>معلومات إضافية</h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <strong>تاريخ الإضافة:</strong><br>
+                    {{ guardian.created_at|date:"d/m/Y - H:i" }}
+                </small>
+                <hr>
+                <small class="text-muted">
+                    <strong>آخر تحديث:</strong><br>
+                    {{ guardian.updated_at|date:"d/m/Y - H:i" }}
+                </small>
+            </div>
+        </div>
+        
+        <!-- روابط سريعة -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-link me-2"></i>روابط سريعة</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'basic_data:wives_list' %}?guardian={{ guardian.pk }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person-heart me-1"></i>عرض الزوجات
+                    </a>
+                    <a href="{% url 'basic_data:children_list' %}?guardian={{ guardian.pk }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-people me-1"></i>عرض الأبناء
+                    </a>
+                    <a href="{% url 'assistance:assistance_list' %}?search_query={{ guardian.national_id }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-gift me-1"></i>عرض المساعدات
+                    </a>
+                    {% if guardian.district %}
+                        <a href="{% url 'basic_data:district_detail' guardian.district.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-geo-alt me-1"></i>تفاصيل الحي
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

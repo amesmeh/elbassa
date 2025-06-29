@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}المساعدات - برنامج المساعدات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-heart me-2"></i>نظام إدارة المساعدات</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">مرحباً بك في نظام إدارة المساعدات الإنسانية لقطاع غزة</p>
+                
+                <!-- الإحصائيات العامة -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people" style="font-size: 2rem;"></i>
+                                <h3 class="mt-2">{{ total_beneficiaries }}</h3>
+                                <p class="mb-0">إجمالي المستفيدين</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <i class="bi bi-box-seam" style="font-size: 2rem;"></i>
+                                <h3 class="mt-2">{{ total_distributions }}</h3>
+                                <p class="mb-0">إجمالي التوزيعات</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <i class="bi bi-list-ul" style="font-size: 2rem;"></i>
+                                <h3 class="mt-2">{{ total_aid_types }}</h3>
+                                <p class="mb-0">أنواع المساعدات</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- زر إدارة المساعدات -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card border-primary">
+                            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <h5 class="mb-0 text-center">
+                                    <i class="fas fa-hands-helping me-2"></i>إدارة المساعدات الشاملة
+                                </h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-check-circle me-2"></i>الميزات المتاحة:
+                                        </h6>
+                                        <ul class="list-unstyled text-start">
+                                            <li><i class="fas fa-user-plus text-success me-2"></i>إضافة مساعدات جديدة</li>
+                                            <li><i class="fas fa-search text-info me-2"></i>البحث المرن والمتقدم</li>
+                                            <li><i class="fas fa-filter text-warning me-2"></i>فلترة حسب النوع والتاريخ</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-cogs me-2"></i>إدارة متكاملة:
+                                        </h6>
+                                        <ul class="list-unstyled text-start">
+                                            <li><i class="fas fa-edit text-primary me-2"></i>تعديل وتكرار المساعدات</li>
+                                            <li><i class="fas fa-file-excel text-success me-2"></i>تصدير واستيراد Excel</li>
+                                            <li><i class="fas fa-chart-bar text-warning me-2"></i>تقارير وإحصائيات</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <a href="/assistance/" class="btn btn-lg px-5 py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; font-size: 1.1rem; font-weight: bold;">
+                                    <i class="fas fa-arrow-left me-2"></i>إدارة المساعدات
+                                </a>
+                                <p class="text-muted mt-2 mb-0">
+                                    <small>انقر للانتقال إلى نظام إدارة المساعدات الشامل</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- إحصائيات أنواع المساعدات -->
+                {% if aid_stats %}
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="bi bi-bar-chart me-2"></i>إحصائيات أنواع المساعدات</h5>
+                            <!-- زر الحذف المتعدد -->
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" 
+                                        aria-expanded="false" id="deleteButton" disabled>
+                                    <i class="bi bi-trash3 me-1"></i>حذف
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button type="button" class="dropdown-item text-warning" onclick="deleteSelected()">
+                                            <i class="bi bi-check2-square me-2"></i>حذف المحدد
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger" onclick="deleteAll()">
+                                            <i class="bi bi-trash3 me-2"></i>حذف الكل
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <input type="checkbox" id="selectAll" class="form-check-input">
+                                            </th>
+                                            <th>نوع المساعدة</th>
+                                            <th>الفئة</th>
+                                            <th>عدد المستفيدين</th>
+                                            <th>عدد التوزيعات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for aid_type in aid_stats %}
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input aid-type-checkbox" 
+                                                           value="{{ aid_type.id }}">
+                                                </td>
+                                                <td><strong>{{ aid_type.name }}</strong></td>
+                                                <td>
+                                                    <span class="badge bg-secondary">{{ aid_type.get_category_display }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary">{{ aid_type.beneficiaries_count }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success">{{ aid_type.distributions_count }}</span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // تحديد الكل
+    $('#selectAll').change(function() {
+        $('.aid-type-checkbox').prop('checked', this.checked);
+        updateDeleteButton();
+    });
+    
+    // تحديد فردي
+    $('.aid-type-checkbox').change(function() {
+        if ($('.aid-type-checkbox:checked').length === $('.aid-type-checkbox').length) {
+            $('#selectAll').prop('checked', true);
+        } else {
+            $('#selectAll').prop('checked', false);
+        }
+        updateDeleteButton();
+    });
+    
+    // تحديث حالة زر الحذف
+    function updateDeleteButton() {
+        const checkedCount = $('.aid-type-checkbox:checked').length;
+        $('#deleteButton').prop('disabled', checkedCount === 0);
+    }
+});
+
+// حذف المحدد
+function deleteSelected() {
+    const selectedIds = $('.aid-type-checkbox:checked').map(function() {
+        return this.value;
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        alert('يرجى تحديد أنواع مساعدات للحذف');
+        return;
+    }
+    
+    if (confirm(`هل أنت متأكد من حذف ${selectedIds.length} نوع مساعدة؟\n\nتحذير: سيتم حذف جميع البيانات المرتبطة (المستفيدين والتوزيعات)`)) {
+        const formData = new FormData();
+        selectedIds.forEach(id => formData.append('aid_type_ids', id));
+        
+        fetch("{% url 'aids:delete_selected_aid_types' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('حدث خطأ في الاتصال');
+        });
+    }
+}
+
+// حذف الكل
+function deleteAll() {
+    if (confirm('هل أنت متأكد من حذف جميع أنواع المساعدات؟\n\nتحذير: سيتم حذف جميع البيانات المرتبطة (المستفيدين والتوزيعات)\n\nهذا الإجراء لا يمكن التراجع عنه!')) {
+        if (confirm('تأكيد أخير: سيتم حذف جميع أنواع المساعدات وكافة البيانات المرتبطة بها نهائياً!\n\nهل أنت متأكد 100%؟')) {
+            fetch("{% url 'aids:delete_all_aid_types' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('خطأ: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('حدث خطأ في الاتصال');
+            });
+        }
+    }
+}
+</script>
+{% endblock %} 

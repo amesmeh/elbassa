@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}السجل المدني - نظام المساعدات{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="bi bi-file-text text-dark"></i>
+                    إدارة السجل المدني
+                </h1>
+                <p class="page-subtitle">عرض وإدارة بيانات المواطنين</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- البحث والفلاتر -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-search"></i>
+                        البحث والفلترة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">البحث</label>
+                            <input type="text" class="form-control" id="search" name="search_query" 
+                                   value="{{ search_query }}" placeholder="الاسم أو رقم الهوية أو المدينة">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="gender" class="form-label">الجنس</label>
+                            <select class="form-select" id="gender" name="gender">
+                                <option value="">جميع الأجناس</option>
+                                {% for choice in gender_choices %}
+                                <option value="{{ choice.0 }}" {% if gender_filter == choice.0 %}selected{% endif %}>
+                                    {{ choice.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="governorate" class="form-label">المحافظة</label>
+                            <select class="form-select" id="governorate" name="governorate">
+                                <option value="">جميع المحافظات</option>
+                                {% for choice in governorate_choices %}
+                                <option value="{{ choice.0 }}" {% if governorate_filter == choice.0 %}selected{% endif %}>
+                                    {{ choice.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> بحث
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- النتائج -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list"></i>
+                        قائمة السجل المدني ({{ total_count }} مواطن)
+                    </h5>
+                    {% comment %} إخفاء الأزرار عن المندوبين والمراقبين - إبقاء المشرفين فقط {% endcomment %}
+                    {% if user.is_superuser %}
+                    <div class="btn-group">
+                        <!-- قائمة Excel -->
+                        <div class="btn-group me-2" role="group">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'civil_registry:export_civil_registry_excel' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+                                        <i class="bi bi-download me-2"></i>تصدير Excel
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
+                                        <i class="bi bi-upload me-2"></i>استيراد Excel
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'civil_registry:download_civil_registry_template' %}">
+                                        <i class="bi bi-file-earmark-arrow-down me-2"></i>تحميل النموذج
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <a href="#" 
+                           class="btn btn-danger me-2">
+                            <i class="bi bi-file-earmark-pdf"></i> تصدير PDF
+                        </a>
+                        <a href="{% url 'civil_registry:civil_record_add' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> إضافة مواطن جديد
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الجنس</th>
+                                    <th>تاريخ الميلاد</th>
+                                    <th>العمر</th>
+                                    <th>المحافظة</th>
+                                    <th>المدينة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in page_obj %}
+                                <tr>
+                                    <td><strong>{{ record.name }}</strong></td>
+                                    <td>{{ record.national_id }}</td>
+                                    <td>
+                                        <span class="badge {% if record.gender == 'ذكر' %}bg-primary{% else %}bg-pink{% endif %}">
+                                            {{ record.gender }}
+                                        </span>
+                                    </td>
+                                    <td>{{ record.birth_date|date:"Y/m/d" }}</td>
+                                    <td>{{ record.age }} سنة</td>
+                                    <td>{{ record.get_governorate_display }}</td>
+                                    <td>{{ record.city }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <!-- زر العرض متاح للجميع -->
+                                            <a href="{% url 'civil_registry:civil_record_detail' record.pk %}" 
+                                               class="btn btn-outline-primary" title="عرض التفاصيل">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            
+                                            <!-- أزرار التعديل والحذف للمشرفين فقط -->
+                                            {% if user.is_superuser %}
+                                            <a href="{% url 'civil_registry:civil_record_edit' record.pk %}" 
+                                               class="btn btn-outline-warning" title="تعديل">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'civil_registry:civil_record_delete' record.pk %}" 
+                                               class="btn btn-outline-danger" title="حذف"
+                                               onclick="return confirm('هل أنت متأكد من حذف هذا السجل؟');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- التقسيم إلى صفحات -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="تقسيم الصفحات">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if governorate_filter %}&governorate={{ governorate_filter }}{% endif %}">السابق</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if governorate_filter %}&governorate={{ governorate_filter }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if gender_filter %}&gender={{ gender_filter }}{% endif %}{% if governorate_filter %}&governorate={{ governorate_filter }}{% endif %}">التالي</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">لا توجد نتائج</h4>
+                        <p class="text-muted">لم يتم العثور على مواطنين مطابقين لمعايير البحث</p>
+                        {% if user.is_superuser %}
+                        <a href="{% url 'civil_registry:civil_record_add' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> إضافة مواطن جديد
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة استيراد Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="bi bi-upload me-2"></i>استيراد السجل المدني من Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'civil_registry:import_civil_registry_excel' %}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="alert alert-info">
+                        <strong>تعليمات الاستيراد:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>تأكد من صحة البيانات قبل الاستيراد</li>
+                            <li>يمكنك تحميل النموذج أولاً لمعرفة التنسيق المطلوب</li>
+                            <li>البيانات المكررة ستُتجاهل</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">اختر ملف Excel</label>
+                        <input type="file" class="form-control" id="excelFile" name="excel_file" accept=".xlsx,.xls" required>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'civil_registry:download_civil_registry_template' %}" class="btn btn-outline-info">
+                            <i class="bi bi-download me-1"></i>تحميل النموذج
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload me-1"></i>استيراد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 
