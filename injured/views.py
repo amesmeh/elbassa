@@ -8,7 +8,7 @@ from .models import Injured
 from basic_data.models import District, Guardian
 from .forms import InjuredForm, InjuredSearchForm, InjuredImportForm
 from .utils import search_injured
-import pandas as pd
+# import pandas as pd  # تعطيل مؤقتاً للتوافق مع Render
 from django.core.exceptions import ValidationError
 from utils.excel_utils import create_excel_response, auto_adjust_column_width
 from openpyxl import Workbook

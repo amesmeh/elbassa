@@ -8,7 +8,7 @@ from .models import Orphan
 from basic_data.models import District, Guardian
 from .forms import OrphanForm, OrphanSearchForm, OrphanImportForm
 from .utils import search_orphans
-import pandas as pd
+# import pandas as pd  # تعطيل مؤقتاً للتوافق مع Render
 from django.core.exceptions import ValidationError
 from datetime import date
 from utils.excel_utils import create_excel_response, auto_adjust_column_width

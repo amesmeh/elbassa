@@ -8,7 +8,7 @@ from .models import MedicalRecord
 from basic_data.models import District, Guardian
 from .forms import MedicalRecordForm, MedicalRecordSearchForm, MedicalRecordImportForm
 from .utils import search_medical_records
-import pandas as pd
+# import pandas as pd  # تعطيل مؤقتاً للتوافق مع Render
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from utils.excel_utils import create_excel_response, auto_adjust_column_width

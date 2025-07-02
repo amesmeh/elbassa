@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Sum, Avg
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
-import pandas as pd
+# import pandas as pd  # تعطيل مؤقتاً للتوافق مع Render
 import io
 from .models import Damage
 from .forms import DamageForm, DamageSearchForm, DamageImportForm
