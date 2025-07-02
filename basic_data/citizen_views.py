@@ -271,11 +271,11 @@ def public_citizen_registration(request):
                     )
             
             messages.success(request, 'تم إرسال طلب التسجيل بنجاح')
-            return redirect('basic_data:registration_success')
+            return redirect('citizen_registration:registration_success')
             
         except Exception as e:
             messages.error(request, f'حدث خطأ: {str(e)}')
-            return redirect('basic_data:public_citizen_registration')
+            return redirect('citizen_registration:public_citizen_registration')
     
     # عرض النموذج
     districts = District.objects.all()
