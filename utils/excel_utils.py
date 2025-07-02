@@ -1,10 +1,8 @@
-import pandas as pd
 from django.http import HttpResponse
 from django.utils import timezone
 from io import BytesIO
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils.dataframe import dataframe_to_rows
 from basic_data.models import Guardian, District, Wife, Child
 from datetime import datetime
 
@@ -154,16 +152,32 @@ def export_guardians_to_excel(guardians_queryset=None):
             }
             data.append(row_data)
         
-        df = pd.DataFrame(data)
-        
         # إنشاء workbook وورقة عمل
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "أولياء الأمور"
         
+        # إضافة العناوين
+        headers = [
+            'اسم ولي الأمر', 'رقم الهوية', 'الجنس', 'الوظيفة', 'رقم الجوال',
+            'الحالة الاجتماعية', 'عدد الأبناء', 'عدد الزوجات',
+            'اسم الزوجة 1', 'رقم هوية الزوجة 1',
+            'اسم الزوجة 2', 'رقم هوية الزوجة 2',
+            'اسم الزوجة 3', 'رقم هوية الزوجة 3',
+            'اسم الزوجة 4', 'رقم هوية الزوجة 4',
+            'عدد أفراد العائلة', 'حالة الإقامة', 'المحافظة الأصلية',
+            'المدينة الأصلية', 'عنوان النزوح', 'الحي الحالي', 'تاريخ الإنشاء'
+        ]
+        
+        for col, header in enumerate(headers, 1):
+            ws.cell(row=1, column=col, value=header)
+        
         # إضافة البيانات
-        for r in dataframe_to_rows(df, index=False, header=True):
-            ws.append(r)
+        row_num = 2
+        for row_data in data:
+            for col, value in enumerate(row_data.values(), 1):
+                ws.cell(row=row_num, column=col, value=value)
+            row_num += 1
         
         # تنسيق الخط العربي Simplified Arabic
         arabic_font = Font(name='Simplified Arabic', size=12)

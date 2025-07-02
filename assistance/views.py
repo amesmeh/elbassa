@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from datetime import datetime, date
 import json
-import pandas as pd
+# import pandas as pd  # تعطيل مؤقتاً للتوافق مع Render
 import io
 import csv
 from basic_data.models import District, Guardian, Representative

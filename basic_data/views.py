@@ -9,11 +9,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 import json
 from .models import District, Guardian, Wife, Child, Representative
 from .utils import search_guardians, search_children, search_wives, search_districts
-from utils.excel_utils import (
-    export_guardians_to_excel, export_children_to_excel, export_districts_to_excel, export_wives_to_excel,
-    create_guardians_template, create_children_template, create_districts_template, create_wives_template,
-    import_guardians_from_excel, import_children_from_excel, import_districts_from_excel, import_wives_from_excel,
-    create_import_errors_excel
+from utils.excel_utils_simple import (
+    export_guardians_to_excel, export_children_to_excel, export_districts_to_excel, export_wives_to_excel
 )
 from django.utils import timezone
 from django.db import models
@@ -1636,65 +1633,51 @@ def districts_list(request):
 def download_guardians_template(request):
     """تحميل نموذج Excel لأولياء الأمور"""
     try:
-        from utils.excel_utils import create_guardians_template
-        return create_guardians_template()
-    except ImportError:
-        # نظام بديل في حالة عدم وجود utils
-        import pandas as pd
         from django.http import HttpResponse
-        from io import BytesIO
-        
-        # إنشاء نموذج بيانات
-        template_data = [
-            {
-                'اسم ولي الأمر': 'محمد أحمد علي',
-                'رقم الهوية': '123456789',
-                'الجنس': 'ذكر',
-                'الوظيفة': 'مهندس',
-                'رقم الجوال': '0599123456',
-                'الحالة الاجتماعية': 'متزوج',
-                'عدد الأبناء': 3,
-                'عدد الزوجات': 1,
-                'حالة الإقامة': 'مقيم',
-                'المحافظة الأصلية': 'غزة',
-                'المدينة الأصلية': 'غزة',
-                'عنوان النزوح': '',
-                'الحي': 'الرمال'
-            },
-            {
-                'اسم ولي الأمر': 'فاطمة خالد سالم',
-                'رقم الهوية': '987654321',
-                'الجنس': 'أنثى',
-                'الوظيفة': 'معلمة',
-                'رقم الجوال': '0599876543',
-                'الحالة الاجتماعية': 'أرملة',
-                'عدد الأبناء': 2,
-                'عدد الزوجات': 0,
-                'حالة الإقامة': 'نازح',
-                'المحافظة الأصلية': 'خان يونس',
-                'المدينة الأصلية': 'خان يونس',
-                'عنوان النزوح': 'مخيم النصيرات',
-                'الحي': 'النصيرات'
-            }
-        ]
-        
-        df = pd.DataFrame(template_data)
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
         
         # إنشاء ملف Excel
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='نموذج أولياء الأمور', index=False)
-        
-        output.seek(0)
-        
-        # إنشاء الاستجابة
-        response = HttpResponse(
-            output.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="guardians_import_template.xlsx"'
         
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "نموذج أولياء الأمور"
+        
+        # إضافة العناوين
+        headers = [
+            'اسم ولي الأمر', 'رقم الهوية', 'الجنس', 'الوظيفة', 'رقم الجوال',
+            'الحالة الاجتماعية', 'عدد الأبناء', 'عدد الزوجات',
+            'حالة الإقامة', 'المحافظة الأصلية', 'المدينة الأصلية', 'عنوان النزوح', 'الحي'
+        ]
+        
+        for col, header in enumerate(headers, 1):
+            ws.cell(row=1, column=col, value=header)
+        
+        # إضافة بيانات نموذجية
+        sample_data = [
+            ['محمد أحمد علي', '123456789', 'ذكر', 'مهندس', '0599123456', 'متزوج', 3, 1, 'مقيم', 'غزة', 'غزة', '', 'الرمال'],
+            ['فاطمة خالد سالم', '987654321', 'أنثى', 'معلمة', '0599876543', 'أرملة', 2, 0, 'نازح', 'خان يونس', 'خان يونس', 'مخيم النصيرات', 'النصيرات']
+        ]
+        
+        for row_num, row_data in enumerate(sample_data, 2):
+            for col, value in enumerate(row_data, 1):
+                ws.cell(row=row_num, column=col, value=value)
+        
+        # تنسيق العناوين
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        
+        for cell in ws[1]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+        
+        wb.save(response)
         return response
+        
     except Exception as e:
         messages.error(request, f'خطأ في إنشاء النموذج: {str(e)}')
         return redirect('basic_data:guardians_list')
@@ -1702,26 +1685,20 @@ def download_guardians_template(request):
 @login_required
 def download_children_template(request):
     """تحميل نموذج Excel للأبناء"""
-    try:
-        return create_children_template()
-    except Exception as e:
-        messages.error(request, f'خطأ في إنشاء النموذج: {str(e)}')
-        return redirect('basic_data:children_list')
+    messages.warning(request, 'هذه الميزة غير متاحة حالياً على الخادم')
+    return redirect('basic_data:children_list')
 
 @login_required
 def download_wives_template(request):
     """تحميل نموذج Excel للزوجات"""
-    try:
-        return create_wives_template()
-    except Exception as e:
-        messages.error(request, f'خطأ في إنشاء النموذج: {str(e)}')
-        return redirect('basic_data:wives_list')
+    messages.warning(request, 'هذه الميزة غير متاحة حالياً على الخادم')
+    return redirect('basic_data:wives_list')
 
 @login_required
 def download_districts_template(request):
     """تحميل قالب الأحياء"""
-    from .utils.excel_utils import create_districts_template
-    return create_districts_template()
+    messages.warning(request, 'هذه الميزة غير متاحة حالياً على الخادم')
+    return redirect('basic_data:districts_list')
 
 @login_required
 def export_guardians_pdf(request):
@@ -1837,75 +1814,7 @@ def download_import_errors(request):
 @login_required 
 def import_guardians_excel(request):
     """استيراد أولياء الأمور من Excel"""
-    if not request.user.is_superuser:
-        messages.error(request, 'غير مصرح لك باستيراد البيانات')
-        return redirect('basic_data:guardians_list')
-    
-    if request.method == 'POST':
-        excel_file = request.FILES.get('excel_file')
-        if not excel_file:
-            messages.error(request, 'يرجى اختيار ملف Excel')
-            return redirect('basic_data:guardians_list')
-        
-        try:
-            # استخدام وظيفة الاستيراد المحسنة من utils
-            from utils.excel_utils import import_guardians_from_excel
-            result = import_guardians_from_excel(excel_file)
-            
-            if result['success']:
-                messages.success(request, f'تم استيراد {result["success_count"]} ولي أمر بنجاح')
-                if result.get('error_messages'):
-                    # حفظ الأخطاء في الجلسة لعرضها لاحقاً
-                    request.session['import_errors'] = result['error_messages']
-                    request.session['detailed_errors'] = result.get('detailed_errors', [])
-                    messages.warning(request, f'فشل في استيراد {len(result["error_messages"])} سجل. يمكنك تحميل ملف الأخطاء للتفاصيل.')
-            else:
-                messages.error(request, f'حدث خطأ في الاستيراد: {result.get("error_message", "خطأ غير معروف")}')
-                
-        except ImportError:
-            # نظام بديل في حالة عدم وجود utils
-            import pandas as pd
-            success_count = 0
-            error_count = 0
-            
-            try:
-                df = pd.read_excel(excel_file)
-                
-                for index, row in df.iterrows():
-                    try:
-                        # Get or create district
-                        district = None
-                        if pd.notna(row.get('الحي')):
-                            district, created = District.objects.get_or_create(
-                                name=row['الحي'],
-                                defaults={
-                                    'representative_name': 'غير محدد',
-                                    'representative_phone': '000000000'
-                                }
-                            )
-                        
-                        # Create guardian
-                        guardian = Guardian.objects.create(
-                            national_id=str(row.get('رقم الهوية', '')),
-                            name=str(row.get('اسم ولي الأمر', '')),
-                            phone_number=str(row.get('رقم الجوال', '')),
-                            district=district,
-                            family_members_count=int(row.get('عدد أفراد العائلة', 0))
-                        )
-                        success_count += 1
-                    except Exception as e:
-                        error_count += 1
-                        continue
-                
-                messages.success(request, f'تم استيراد {success_count} سجل بنجاح')
-                if error_count > 0:
-                    messages.warning(request, f'فشل في استيراد {error_count} سجل')
-                    
-            except Exception as e:
-                messages.error(request, f'حدث خطأ في قراءة الملف: {str(e)}')
-        except Exception as e:
-            messages.error(request, f'حدث خطأ في الاستيراد: {str(e)}')
-    
+    messages.warning(request, 'ميزة الاستيراد غير متاحة حالياً على الخادم')
     return redirect('basic_data:guardians_list')
 
 @login_required
@@ -1939,28 +1848,7 @@ def export_wives_excel(request):
 @login_required
 def import_wives_excel(request):
     """استيراد الزوجات من Excel"""
-    if not request.user.is_superuser:
-        messages.error(request, 'غير مصرح لك باستيراد البيانات')
-        return redirect('basic_data:wives_list')
-    
-    if request.method == 'POST':
-        excel_file = request.FILES.get('excel_file')
-        if not excel_file:
-            messages.error(request, 'يرجى اختيار ملف Excel')
-            return redirect('basic_data:wives_list')
-        
-        try:
-            result = import_wives_from_excel(excel_file, request.user)
-            if result['success']:
-                messages.success(request, f'تم استيراد {result["success_count"]} زوجة بنجاح')
-                if result.get('error_count', 0) > 0:
-                    messages.warning(request, f'فشل في استيراد {result["error_count"]} سجل')
-            else:
-                messages.error(request, f'حدث خطأ في الاستيراد: {result.get("error", "خطأ غير معروف")}')
-                
-        except Exception as e:
-            messages.error(request, f'حدث خطأ في قراءة الملف: {str(e)}')
-    
+    messages.warning(request, 'ميزة الاستيراد غير متاحة حالياً على الخادم')
     return redirect('basic_data:wives_list')
 
 @login_required
@@ -2200,50 +2088,14 @@ def export_children_excel(request):
 
     # استخدام وظيفة التصدير من utils
     try:
-        from utils.excel_utils import export_children_to_excel
+        from utils.excel_utils_simple import export_children_to_excel
         return export_children_to_excel(children)
     except ImportError:
-        import pandas as pd
-        from django.http import HttpResponse
-        from io import BytesIO
-        data = [
-            {
-                'اسم الطفل': c.name,
-                'تاريخ الميلاد': c.birth_date,
-                'رقم الهوية': c.national_id,
-                'اسم ولي الأمر': c.guardian.name if c.guardian else '',
-                'رقم هوية ولي الأمر': c.guardian.national_id if c.guardian else '',
-                'الحي': c.guardian.district.name if c.guardian and c.guardian.district else '',
-            }
-            for c in children
-        ]
-        df = pd.DataFrame(data)
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df.to_excel(writer, index=False, sheet_name='الأبناء')
-        output.seek(0)
-        response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=children.xlsx'
-        return response
+        messages.error(request, 'ميزة التصدير غير متاحة حالياً')
+        return redirect('basic_data:children_list')
 
 @login_required
 def import_children_excel(request):
     """استيراد الأبناء من ملف Excel"""
-    if request.method == 'POST':
-        excel_file = request.FILES.get('excel_file')
-        if not excel_file:
-            messages.error(request, 'يرجى اختيار ملف Excel')
-            return redirect('basic_data:children_list')
-        try:
-            from utils.excel_utils import import_children_from_excel
-            result = import_children_from_excel(excel_file, request.user)
-            if result.get('errors'):
-                request.session['import_errors'] = result['errors']
-                messages.warning(request, f'تم الاستيراد مع وجود أخطاء. تم استيراد {result.get("imported_count", 0)} من الأبناء.')
-            else:
-                messages.success(request, f'تم استيراد {result.get("imported_count", 0)} من الأبناء بنجاح.')
-        except Exception as e:
-            messages.error(request, f'حدث خطأ أثناء الاستيراد: {str(e)}')
-        return redirect('basic_data:children_list')
-    else:
-        return redirect('basic_data:children_list')
+    messages.warning(request, 'ميزة الاستيراد غير متاحة حالياً على الخادم')
+    return redirect('basic_data:children_list')
