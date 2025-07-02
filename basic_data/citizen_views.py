@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, models
 from .citizen_models import CitizenRegistrationRequest, CitizenRequestChild, CitizenRequestWife
 from .citizen_forms import CitizenRegistrationForm, CitizenRequestChildFormSet, CitizenRequestWifeFormSet
 from .models import Guardian, District, Child, Wife
@@ -52,7 +52,14 @@ def registration_success(request):
 
 def check_national_id(request):
     """التحقق من رقم الهوية (AJAX)"""
-    national_id = request.GET.get('national_id')
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            national_id = data.get('national_id')
+        except:
+            national_id = request.POST.get('national_id')
+    else:
+        national_id = request.GET.get('national_id')
     
     if not national_id:
         return JsonResponse({'exists': False, 'error': 'رقم الهوية مطلوب'})
@@ -203,4 +210,75 @@ def delete_registration_request(request, request_id):
         return JsonResponse({
             'success': False,
             'message': f'حدث خطأ أثناء حذف الطلب: {str(e)}'
-        }) 
+        })
+
+
+def public_citizen_registration(request):
+    """صفحة تسجيل مواطن جديد (للمواطنين)"""
+    from .models import District
+    
+    if request.method == 'POST':
+        try:
+            # التحقق من وجود رقم الهوية
+            national_id = request.POST.get('national_id')
+            if CitizenRegistrationRequest.objects.filter(national_id=national_id).exists():
+                messages.error(request, 'رقم الهوية موجود مسبقاً')
+                return redirect('basic_data:public_citizen_registration')
+            
+            # إنشاء طلب التسجيل
+            registration_request = CitizenRegistrationRequest.objects.create(
+                name=request.POST.get('name'),
+                national_id=national_id,
+                phone_number=request.POST.get('phone_number'),
+                gender=request.POST.get('gender'),
+                current_job=request.POST.get('current_job', ''),
+                children_count=request.POST.get('children_count', 0),
+                marital_status=request.POST.get('marital_status'),
+                wives_count=request.POST.get('wives_count', 0),
+                residence_status=request.POST.get('residence_status'),
+                original_governorate=request.POST.get('original_governorate', ''),
+                original_city=request.POST.get('original_city', ''),
+                displacement_address=request.POST.get('displacement_address', ''),
+                district_id=request.POST.get('district'),
+                housing_type=request.POST.get('housing_type', ''),
+                status='pending'
+            )
+
+            # معالجة بيانات الأبناء
+            children_names = request.POST.getlist('children_names[]')
+            children_national_ids = request.POST.getlist('children_national_ids[]')
+            children_birth_dates = request.POST.getlist('children_birth_dates[]')
+
+            for i, name in enumerate(children_names):
+                if name.strip():  # تأكد من أن الاسم ليس فارغاً
+                    CitizenRequestChild.objects.create(
+                        request=registration_request,
+                        name=name.strip(),
+                        national_id=children_national_ids[i].strip() if i < len(children_national_ids) and children_national_ids[i].strip() else None,
+                        birth_date=children_birth_dates[i] if i < len(children_birth_dates) and children_birth_dates[i] else None
+                    )
+
+            # معالجة بيانات الزوجات
+            wives_names = request.POST.getlist('wives_names[]')
+            wives_national_ids = request.POST.getlist('wives_national_ids[]')
+
+            for i, name in enumerate(wives_names):
+                if name.strip():  # تأكد من أن الاسم ليس فارغاً
+                    CitizenRequestWife.objects.create(
+                        request=registration_request,
+                        name=name.strip(),
+                        national_id=wives_national_ids[i].strip() if i < len(wives_national_ids) and wives_national_ids[i].strip() else None
+                    )
+            
+            messages.success(request, 'تم إرسال طلب التسجيل بنجاح')
+            return redirect('basic_data:registration_success')
+            
+        except Exception as e:
+            messages.error(request, f'حدث خطأ: {str(e)}')
+            return redirect('basic_data:public_citizen_registration')
+    
+    # عرض النموذج
+    districts = District.objects.all()
+    return render(request, 'basic_data/citizen_public_registration.html', {
+        'districts': districts
+    }) 

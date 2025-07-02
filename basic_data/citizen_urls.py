@@ -7,8 +7,11 @@ urlpatterns = [
     # قائمة طلبات التسجيل
     path('requests/', citizen_views.registration_requests_list, name='registration_requests_list'),
     
-    # تسجيل مواطن جديد
+    # تسجيل مواطن جديد (للموظفين)
     path('register/', citizen_views.citizen_registration, name='citizen_registration'),
+    
+    # تسجيل مواطن جديد (للمواطنين - عام)
+    path('public-register/', citizen_views.public_citizen_registration, name='public_citizen_registration'),
     
     # صفحة النجاح
     path('success/', citizen_views.registration_success, name='registration_success'),

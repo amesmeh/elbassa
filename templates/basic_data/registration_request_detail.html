@@ -260,6 +260,7 @@
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="container-fluid">
     <!-- رأس الصفحة -->
     <div class="card mb-4">
@@ -480,7 +481,7 @@ let currentRequestId = null;
 
 function approveRequest(requestId) {
     if (confirm('هل أنت متأكد من قبول هذا الطلب؟ سيتم إنشاء ولي الأمر تلقائياً.')) {
-        fetch(`/citizen-registration/approve/${requestId}/`, {
+        fetch(`/citizen/request/${requestId}/approve/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -516,7 +517,7 @@ function confirmReject() {
         return;
     }
     
-    fetch(`/citizen-registration/reject/${currentRequestId}/`, {
+    fetch(`/citizen/request/${currentRequestId}/reject/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,

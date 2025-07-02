@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}تم إرسال الطلب بنجاح{% endblock %}
+{% block title %}تم إرسال طلب التسجيل بنجاح{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -149,100 +149,28 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="success-container">
-                <div class="success-icon">
-                    <i class="fas fa-check"></i>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center">
+                <div class="card-body" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;">
+                    <i class="fas fa-check-circle" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                    <h2 class="card-title">تم إرسال طلب التسجيل بنجاح!</h2>
+                    <p class="card-text">
+                        شكراً لك على تقديم طلب التسجيل. سيتم مراجعة طلبك من قبل الإدارة المختصة.
+                        <br>
+                        يمكنك متابعة حالة طلبك من خلال التواصل معنا.
+                    </p>
                 </div>
-                
-                <h1 class="success-title">تم إرسال طلب التسجيل بنجاح!</h1>
-                
-                <p class="success-message">
-                    شكراً لك على تقديم طلب التسجيل. تم استلام طلبك وسيتم مراجعته من قبل الإدارة المختصة.
-                    سنقوم بالتواصل معك عبر رقم الجوال المقدم عند الانتهاء من مراجعة الطلب.
-                </p>
-                
-                <!-- معلومات الطلب -->
-                <div class="info-card">
-                    <h5>
-                        <i class="fas fa-info-circle"></i>
-                        معلومات الطلب
-                    </h5>
-                    <div class="info-item">
-                        <span class="info-label">حالة الطلب:</span>
-                        <span class="info-value">
-                            <span class="badge bg-warning">في انتظار المراجعة</span>
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">تاريخ التقديم:</span>
-                        <span class="info-value">{{ request.session.registration_date|default:"اليوم" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">وقت المعالجة المتوقع:</span>
-                        <span class="info-value">1-3 أيام عمل</span>
-                    </div>
-                </div>
-                
-                <!-- خطوات المتابعة -->
-                <div class="steps-info">
-                    <h5>
-                        <i class="fas fa-list-ol"></i>
-                        خطوات المتابعة
-                    </h5>
-                    <div class="step-item">
-                        <div class="step-number">1</div>
-                        <div class="step-text">مراجعة الطلب من قبل الإدارة المختصة</div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">2</div>
-                        <div class="step-text">التحقق من صحة البيانات والمستندات</div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">3</div>
-                        <div class="step-text">إرسال رسالة تأكيد أو طلب معلومات إضافية</div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">4</div>
-                        <div class="step-text">إضافة البيانات إلى قاعدة البيانات في حالة القبول</div>
-                    </div>
-                </div>
-                
-                <!-- أزرار الإجراءات -->
-                <div class="action-buttons">
-                    <a href="{% url 'citizen_registration:citizen_registration' %}" class="btn btn-primary">
+                <div class="card-footer">
+                    <a href="{% url 'citizen_registration:public_citizen_registration' %}" class="btn btn-primary">
                         <i class="fas fa-plus"></i>
                         تسجيل مواطن آخر
                     </a>
                     <a href="{% url 'home' %}" class="btn btn-secondary">
                         <i class="fas fa-home"></i>
-                        العودة للرئيسية
+                        العودة للصفحة الرئيسية
                     </a>
-                </div>
-                
-                <!-- معلومات التواصل -->
-                <div class="info-card" style="margin-top: 30px;">
-                    <h5>
-                        <i class="fas fa-phone"></i>
-                        معلومات التواصل
-                    </h5>
-                    <p style="color: #6c757d; margin-bottom: 15px;">
-                        في حالة وجود أي استفسارات أو تحتاج إلى تحديث بياناتك، يمكنك التواصل معنا:
-                    </p>
-                    <div class="info-item">
-                        <span class="info-label">رقم الهاتف:</span>
-                        <span class="info-value">+970-XXX-XXXXXXX</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">البريد الإلكتروني:</span>
-                        <span class="info-value">info@example.com</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">ساعات العمل:</span>
-                        <span class="info-value">الأحد - الخميس: 8:00 ص - 4:00 م</span>
-                    </div>
                 </div>
             </div>
         </div>

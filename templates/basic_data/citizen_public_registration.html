@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}تسجيل مواطن جديد{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">تسجيل مواطن جديد</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="registrationForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="national_id">رقم الهوية الوطنية *</label>
+                                    <input type="text" class="form-control" id="national_id" name="national_id" 
+                                           maxlength="9" required>
+                                    <div id="national_id_feedback" class="invalid-feedback">
+                                        رقم الهوية موجود مسبقاً
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">الاسم الكامل *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="phone_number">رقم الهاتف *</label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="gender">الجنس *</label>
+                                    <select class="form-control" id="gender" name="gender" required>
+                                        <option value="">اختر الجنس</option>
+                                        <option value="ذكر">ذكر</option>
+                                        <option value="أنثى">أنثى</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="district">المنطقة *</label>
+                                    <select class="form-control" id="district" name="district" required>
+                                        <option value="">اختر المنطقة</option>
+                                        {% for district in districts %}
+                                            <option value="{{ district.id }}">{{ district.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="marital_status">الحالة الاجتماعية *</label>
+                                    <select class="form-control" id="marital_status" name="marital_status" required>
+                                        <option value="">اختر الحالة الاجتماعية</option>
+                                        <option value="أعزب">أعزب</option>
+                                        <option value="متزوج">متزوج</option>
+                                        <option value="مطلق">مطلق</option>
+                                        <option value="أرمل">أرمل</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="children_count">عدد الأطفال</label>
+                                <input type="number" class="form-control" id="children_count" name="children_count" min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="wives_count">عدد الزوجات</label>
+                                    <input type="number" class="form-control" id="wives_count" name="wives_count" min="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="residence_status">حالة الإقامة *</label>
+                                    <select class="form-control" id="residence_status" name="residence_status" required>
+                                        <option value="">اختر حالة الإقامة</option>
+                                        <option value="مقيم">مقيم</option>
+                                        <option value="نازح">نازح</option>
+                                        <option value="لاجئ">لاجئ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="housing_type">نوع السكن</label>
+                                    <select class="form-control" id="housing_type" name="housing_type">
+                                        <option value="">اختر نوع السكن</option>
+                                        <option value="ملك">ملك</option>
+                                        <option value="إيجار">إيجار</option>
+                                        <option value="مستأجر">مستأجر</option>
+                                        <option value="مع أقارب">مع أقارب</option>
+                                        <option value="مخيم">مخيم</option>
+                                        <option value="خيمة">خيمة</option>
+                                        <option value="مدرسة">مدرسة</option>
+                                        <option value="مستشفى">مستشفى</option>
+                                        <option value="مسجد">مسجد</option>
+                                        <option value="مخزن">مخزن</option>
+                                        <option value="سيارة">سيارة</option>
+                                        <option value="شارع">شارع</option>
+                                        <option value="آخر">آخر</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="current_job">المهنة الحالية</label>
+                                    <input type="text" class="form-control" id="current_job" name="current_job">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="original_governorate">المحافظة الأصلية</label>
+                                    <input type="text" class="form-control" id="original_governorate" name="original_governorate">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="original_city">المدينة الأصلية</label>
+                                    <input type="text" class="form-control" id="original_city" name="original_city">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="displacement_address">عنوان النزوح</label>
+                                    <textarea class="form-control" id="displacement_address" name="displacement_address" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- بيانات الأبناء -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-child"></i> بيانات الأبناء
+                                </h5>
+                                <div id="children-container">
+                                    <div class="child-entry border rounded p-3 mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>اسم الطفل</label>
+                                                    <input type="text" class="form-control" name="children_names[]" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>رقم الهوية (اختياري)</label>
+                                                    <input type="text" class="form-control" name="children_national_ids[]" maxlength="9">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>تاريخ الميلاد</label>
+                                                    <input type="date" class="form-control" name="children_birth_dates[]" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger btn-sm remove-child" style="margin-top: 32px;">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-success btn-sm" id="add-child">
+                                    <i class="fas fa-plus"></i> إضافة طفل
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- بيانات الزوجات -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-female"></i> بيانات الزوجات
+                                </h5>
+                                <div id="wives-container">
+                                    <div class="wife-entry border rounded p-3 mb-3">
+                                        <div class="row">
+                                            <div class="col-md-5">
+                                                <div class="form-group">
+                                                    <label>اسم الزوجة</label>
+                                                    <input type="text" class="form-control" name="wives_names[]" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <div class="form-group">
+                                                    <label>رقم الهوية (اختياري)</label>
+                                                    <input type="text" class="form-control" name="wives_national_ids[]" maxlength="9">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn btn-danger btn-sm remove-wife" style="margin-top: 32px;">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-success btn-sm" id="add-wife">
+                                    <i class="fas fa-plus"></i> إضافة زوجة
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    <i class="fas fa-save"></i> تسجيل الطلب
+                                </button>
+                                <a href="{% url 'citizen_registration:registration_requests_list' %}" class="btn btn-secondary btn-lg ms-2">
+                                    <i class="fas fa-arrow-right"></i> رجوع
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nationalIdInput = document.getElementById('national_id');
+    const nationalIdFeedback = document.getElementById('national_id_feedback');
+    const submitBtn = document.getElementById('submitBtn');
+    let nationalIdExists = false;
+
+    // التحقق من رقم الهوية عند الكتابة
+    nationalIdInput.addEventListener('input', function() {
+        const nationalId = this.value.trim();
+        
+        if (nationalId.length === 9) {
+            // إرسال طلب AJAX للتحقق من وجود رقم الهوية
+            fetch('{% url "citizen_registration:check_national_id" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: 'national_id=' + encodeURIComponent(nationalId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    nationalIdInput.classList.add('is-invalid');
+                    nationalIdFeedback.style.display = 'block';
+                    nationalIdExists = true;
+                    submitBtn.disabled = true;
+                } else {
+                    nationalIdInput.classList.remove('is-invalid');
+                    nationalIdFeedback.style.display = 'none';
+                    nationalIdExists = false;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            nationalIdInput.classList.remove('is-invalid');
+            nationalIdFeedback.style.display = 'none';
+            nationalIdExists = false;
+            submitBtn.disabled = false;
+        }
+    });
+
+    // منع إرسال النموذج إذا كان رقم الهوية موجود
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        if (nationalIdExists) {
+            e.preventDefault();
+            alert('لا يمكن التسجيل: رقم الهوية موجود مسبقاً');
+        }
+    });
+
+    // إدارة الأبناء
+    const addChildBtn = document.getElementById('add-child');
+    const childrenContainer = document.getElementById('children-container');
+
+    addChildBtn.addEventListener('click', function() {
+        const childEntry = document.createElement('div');
+        childEntry.className = 'child-entry border rounded p-3 mb-3';
+        childEntry.innerHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>اسم الطفل</label>
+                        <input type="text" class="form-control" name="children_names[]" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>رقم الهوية (اختياري)</label>
+                        <input type="text" class="form-control" name="children_national_ids[]" maxlength="9">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>تاريخ الميلاد</label>
+                        <input type="date" class="form-control" name="children_birth_dates[]" required>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-danger btn-sm remove-child" style="margin-top: 32px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        childrenContainer.appendChild(childEntry);
+    });
+
+    // حذف الأبناء
+    childrenContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-child')) {
+            e.target.closest('.child-entry').remove();
+        }
+    });
+
+    // إدارة الزوجات
+    const addWifeBtn = document.getElementById('add-wife');
+    const wivesContainer = document.getElementById('wives-container');
+
+    addWifeBtn.addEventListener('click', function() {
+        const wifeEntry = document.createElement('div');
+        wifeEntry.className = 'wife-entry border rounded p-3 mb-3';
+        wifeEntry.innerHTML = `
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label>اسم الزوجة</label>
+                        <input type="text" class="form-control" name="wives_names[]" required>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label>رقم الهوية (اختياري)</label>
+                        <input type="text" class="form-control" name="wives_national_ids[]" maxlength="9">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm remove-wife" style="margin-top: 32px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        wivesContainer.appendChild(wifeEntry);
+    });
+
+    // حذف الزوجات
+    wivesContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-wife')) {
+            e.target.closest('.wife-entry').remove();
+        }
+    });
+});
+</script>
+{% endblock %} 
